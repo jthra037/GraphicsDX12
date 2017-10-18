@@ -117,6 +117,10 @@ public:
 
 	MeshData CreateTorus(float a, float c, int outserStep, int innerStep);
 
+	GeometryGenerator::MeshData CreatePyramid(float bottomWidth, float bottomDepth, 
+		float topWidth, float topDepth, 
+		float height, int numSubdivisions);
+
 private:
 	void Subdivide(MeshData& meshData);
     Vertex MidPoint(const Vertex& v0, const Vertex& v1);
