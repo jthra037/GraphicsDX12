@@ -888,18 +888,18 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float bottomWidth, 
 	float td2 = 0.5f*topDepth;
 
 	float diffW = bw2 - tw2;
-	float runW = diffW / height;
-	float riseW = height / diffW;
+	float runW = height / abs(diffW);
+	float riseW = diffW / height;
 
 	float diffD = bd2 - td2;
-	float runD = diffD / height;
-	float riseD = height / diffD;
+	float runD = height / abs(diffD);
+	float riseD = diffD / height;
 
 	// Fill in the front face vertex data.
-	v[0] = Vertex(-bw2, -h2, -bd2, 0.0f, -riseD, runD, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	v[1] = Vertex(-tw2, +h2, -td2, 0.0f, -riseD, runD, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	v[2] = Vertex(+tw2, +h2, -td2, 0.0f, -riseD, runD, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	v[3] = Vertex(+bw2, -h2, -bd2, 0.0f, -riseD, runD, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+	v[0] = Vertex(-bw2, -h2, -bd2, 0.0f, riseD, -runD, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	v[1] = Vertex(-tw2, +h2, -td2, 0.0f, riseD, -runD, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	v[2] = Vertex(+tw2, +h2, -td2, 0.0f, riseD, -runD, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	v[3] = Vertex(+bw2, -h2, -bd2, 0.0f, riseD, -runD, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
 
 	// Fill in the back face vertex data.
 	v[4] = Vertex(-bw2, -h2, +bd2, 0.0f, riseD, runD, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
