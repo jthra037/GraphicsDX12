@@ -986,32 +986,35 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePrism(float width, float de
 	Vertex v[18];
 
 	//Front face
-	v[0]  = Vertex(-w2, -h2, -d2, 0, height/d2, -d2/height, 0, 0, 0, 0, 0);
-	v[1]  = Vertex(-w2, +h2, 0.f, 0, height/d2, -d2/height, 0, 0, 0, 0, 0);
-	v[2]  = Vertex(+w2, +h2, 0.f, 0, height/d2, -d2/height, 0, 0, 0, 0, 0);
-	v[3]  = Vertex(+w2, -h2, -d2, 0, height/d2, -d2/height, 0, 0, 0, 0, 0);
+	v[0]  = Vertex(-w2, -h2, -d2, 0, height/d2, -d2/height, 1, 0, 0, 0, 0);
+	v[1]  = Vertex(-w2, +h2, 0.f, 0, height/d2, -d2/height, 1, 0, 0, 0, 1);
+	v[2]  = Vertex(+w2, +h2, 0.f, 0, height/d2, -d2/height, 1, 0, 0, 1, 1);
+	v[3]  = Vertex(+w2, -h2, -d2, 0, height/d2, -d2/height, 1, 0, 0, 1, 0);
 	
 	//Back face
-	v[4]  = Vertex(-w2, -h2, +d2, 0, height / d2, d2 / height, 0, 0, 0, 0, 0);
-	v[5]  = Vertex(-w2, +h2, 0.f, 0, height / d2, d2 / height, 0, 0, 0, 0, 0);
-	v[6]  = Vertex(+w2, +h2, 0.f, 0, height / d2, d2 / height, 0, 0, 0, 0, 0);
-	v[7]  = Vertex(+w2, -h2, +d2, 0, height / d2, d2 / height, 0, 0, 0, 0, 0);
+	v[4]  = Vertex(-w2, -h2, +d2, 0, height / d2, d2 / height, -1, 0, 0, 0, 0);
+	v[5]  = Vertex(+w2, -h2, +d2, 0, height / d2, d2 / height, -1, 0, 0, 1, 0);
+	v[6]  = Vertex(+w2, +h2, 0.f, 0, height / d2, d2 / height, -1, 0, 0, 1, 1);
+	v[7]  = Vertex(-w2, +h2, 0.f, 0, height / d2, d2 / height, -1, 0, 0, 0, 1);
 
 	//Bottom face
-	v[8]  = Vertex(-w2, -h2, -d2, 0, -1, 0, 0, 0, 0, 0, 0);
-	v[9]  = Vertex(+w2, -h2, -d2, 0, -1, 0, 0, 0, 0, 0, 0);
-	v[10] = Vertex(+w2, -h2, +d2, 0, -1, 0, 0, 0, 0, 0, 0);
-	v[11] = Vertex(-w2, -h2, +d2, 0, -1, 0, 0, 0, 0, 0, 0);
+	v[8]  = Vertex(-w2, -h2, -d2, 0, -1, 0, -1, 0, 0, 0, 0);
+	v[9]  = Vertex(+w2, -h2, -d2, 0, -1, 0, -1, 0, 0, 1, 0);
+	v[10] = Vertex(+w2, -h2, +d2, 0, -1, 0, -1, 0, 0, 1, 1);
+	v[11] = Vertex(-w2, -h2, +d2, 0, -1, 0, -1, 0, 0, 0, 1);
 
 	//Right face
-	v[12] = Vertex(+w2, -h2, -d2, 1, 0, 0, 0, 0, 0, 0, 0);
-	v[13] = Vertex(+w2, +h2, 0.f, 1, 0, 0, 0, 0, 0, 0, 0);
-	v[14] = Vertex(+w2, -h2, +d2, 1, 0, 0, 0, 0, 0, 0, 0);
+	v[12] = Vertex(+w2, -h2, -d2, 1, 0, 0, 0, 0, 1, 0, 0);
+	v[13] = Vertex(+w2, +h2, 0.f, 1, 0, 0, 0, 0, 1, 0.5f, 1);
+	v[14] = Vertex(+w2, -h2, +d2, 1, 0, 0, 0, 0, 1, 1, 0);
 
 	//Left face
-	v[15] = Vertex(-w2, -h2, -d2, -1, 0, 0, 0, 0, 0, 0, 0);
-	v[16] = Vertex(-w2, +h2, 0.f, -1, 0, 0, 0, 0, 0, 0, 0);
-	v[17] = Vertex(-w2, -h2, +d2, -1, 0, 0, 0, 0, 0, 0, 0);
+	v[15] = Vertex(-w2, -h2, -d2, -1, 0, 0, 0, 0, -1, 0, 0);
+	v[16] = Vertex(-w2, +h2, 0.f, -1, 0, 0, 0, 0, -1, 0.5f, 1);
+	v[17] = Vertex(-w2, -h2, +d2, -1, 0, 0, 0, 0, -1, 1, 0);
+
+	meshData.Vertices.assign(&v[0], &v[18]);
+
 
 	//Indice Data
 	uint32 i[24];
@@ -1031,15 +1034,15 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePrism(float width, float de
 	i[18] = 12; i[19] = 13; i[20] = 14;
 	
 	//Left face
-	i[21] = 15; i[22] = 16; i[23] = 17;
+	i[21] = 17; i[22] = 16; i[23] = 15;
 
 	meshData.Indices32.assign(&i[0], &i[24]);
 
 	// Put a cap on the number of subdivisions.
-	numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
-
-	for (uint32 i = 0; i < numSubdivisions; ++i)
-		Subdivide(meshData);
+	//numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
+	//
+	//for (uint32 i = 0; i < numSubdivisions; ++i)
+	//	Subdivide(meshData);
 
 	return meshData;
 }
