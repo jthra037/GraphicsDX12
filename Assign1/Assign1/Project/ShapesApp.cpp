@@ -498,6 +498,8 @@ void ShapesApp::BuildShapeGeometry()
 	GeometryGenerator::MeshData sphere = geoGen.CreateSphere(0.5f, 20, 20);
 	GeometryGenerator::MeshData cylinder = geoGen.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20);
 	GeometryGenerator::MeshData diamond = geoGen.CreateDiamond(0.0001f, 0.75f, 1.f, 0.75f, 1, 8, 3);
+	GeometryGenerator::MeshData torus = geoGen.CreateTorus(0.5f, 1.f, 40, 40);
+
 
 	//
 	// We are concatenating all the geometry into one big vertex/index buffer.  So
@@ -510,6 +512,8 @@ void ShapesApp::BuildShapeGeometry()
 	UINT sphereVertexOffset = gridVertexOffset + (UINT)grid.Vertices.size();
 	UINT cylinderVertexOffset = sphereVertexOffset + (UINT)sphere.Vertices.size();
 	UINT diamondVertexOffset = cylinderVertexOffset + (UINT)cylinder.Vertices.size();
+	UINT torusVertexOffset = diamondVertexOffset + (UINT)diamond.Vertices.size();
+
 
 	// Cache the starting index for each object in the concatenated index buffer.
 	UINT boxIndexOffset = 0;
@@ -517,6 +521,7 @@ void ShapesApp::BuildShapeGeometry()
 	UINT sphereIndexOffset = gridIndexOffset + (UINT)grid.Indices32.size();
 	UINT cylinderIndexOffset = sphereIndexOffset + (UINT)sphere.Indices32.size();
 	UINT diamondIndexOffset = cylinderIndexOffset + (UINT)cylinder.Indices32.size();
+	UINT torusIndexOffset = diamondIndexOffset + (UINT)diamond.Indices32.size();
 
 	SubmeshGeometry boxSubmesh;
 	boxSubmesh.IndexCount = (UINT)box.Indices32.size();
@@ -542,6 +547,12 @@ void ShapesApp::BuildShapeGeometry()
 	diamondSubmesh.IndexCount = (UINT)diamond.Indices32.size();
 	diamondSubmesh.StartIndexLocation = diamondIndexOffset;
 	diamondSubmesh.BaseVertexLocation = diamondVertexOffset;
+
+	SubmeshGeometry torusSubmesh;
+	torusSubmesh.IndexCount = (UINT)torus.Indices32.size();
+	torusSubmesh.StartIndexLocation = torusIndexOffset;
+	torusSubmesh.BaseVertexLocation = torusVertexOffset;
+
 	//
 	// Extract the vertex elements we are interested in and pack the
 	// vertices of all the meshes into one vertex buffer.
@@ -552,7 +563,8 @@ void ShapesApp::BuildShapeGeometry()
 		grid.Vertices.size() +
 		sphere.Vertices.size() +
 		cylinder.Vertices.size() + 
-		diamond.Vertices.size();
+		diamond.Vertices.size() + 
+		torus.Vertices.size();
 
 	std::vector<Vertex> vertices(totalVertexCount);
 
@@ -587,12 +599,20 @@ void ShapesApp::BuildShapeGeometry()
 		vertices[k].Normal = diamond.Vertices[i].Normal;
 	}
 
+	for (size_t i = 0; i < torus.Vertices.size(); ++i, ++k)
+	{
+		vertices[k].Pos = torus.Vertices[i].Position;
+		vertices[k].Normal = torus.Vertices[i].Normal;
+	}
+
 	std::vector<std::uint16_t> indices;
 	indices.insert(indices.end(), std::begin(box.GetIndices16()), std::end(box.GetIndices16()));
 	indices.insert(indices.end(), std::begin(grid.GetIndices16()), std::end(grid.GetIndices16()));
 	indices.insert(indices.end(), std::begin(sphere.GetIndices16()), std::end(sphere.GetIndices16()));
 	indices.insert(indices.end(), std::begin(cylinder.GetIndices16()), std::end(cylinder.GetIndices16()));
 	indices.insert(indices.end(), std::begin(diamond.GetIndices16()), std::end(diamond.GetIndices16()));
+	indices.insert(indices.end(), std::begin(torus.GetIndices16()), std::end(torus.GetIndices16()));
+
 
     const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
     const UINT ibByteSize = (UINT)indices.size()  * sizeof(std::uint16_t);
@@ -622,6 +642,7 @@ void ShapesApp::BuildShapeGeometry()
 	geo->DrawArgs["sphere"] = sphereSubmesh;
 	geo->DrawArgs["cylinder"] = cylinderSubmesh;
 	geo->DrawArgs["diamond"] = diamondSubmesh;
+	geo->DrawArgs["torus"] = torusSubmesh;
 
 	mGeometries[geo->Name] = std::move(geo);
 }
@@ -745,53 +766,64 @@ void ShapesApp::BuildFrameResources()
 
 void ShapesApp::BuildMaterials()
 {
+	int cbIndex = 0;
+	int srvHeapIndex = 0;
+
 	auto bricks0 = std::make_unique<Material>();
 	bricks0->Name = "bricks0";
-	bricks0->MatCBIndex = 0;
-	bricks0->DiffuseSrvHeapIndex = 0;
+	bricks0->MatCBIndex = cbIndex++;
+	bricks0->DiffuseSrvHeapIndex = srvHeapIndex++;
 	bricks0->DiffuseAlbedo = XMFLOAT4(Colors::ForestGreen);
 	bricks0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	bricks0->Roughness = 0.1f;
 
 	auto stone0 = std::make_unique<Material>();
 	stone0->Name = "stone0";
-	stone0->MatCBIndex = 1;
-	stone0->DiffuseSrvHeapIndex = 1;
+	stone0->MatCBIndex = cbIndex++;
+	stone0->DiffuseSrvHeapIndex = srvHeapIndex++;
 	stone0->DiffuseAlbedo = XMFLOAT4(Colors::LightSteelBlue);
 	stone0->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05f);
 	stone0->Roughness = 0.3f;
  
 	auto tile0 = std::make_unique<Material>();
 	tile0->Name = "tile0";
-	tile0->MatCBIndex = 2;
-	tile0->DiffuseSrvHeapIndex = 2;
+	tile0->MatCBIndex = cbIndex++;
+	tile0->DiffuseSrvHeapIndex = srvHeapIndex++;
 	tile0->DiffuseAlbedo = XMFLOAT4(Colors::LightGray);
 	tile0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	tile0->Roughness = 0.2f;
 
 	auto skullMat = std::make_unique<Material>();
 	skullMat->Name = "skullMat";
-	skullMat->MatCBIndex = 3;
-	skullMat->DiffuseSrvHeapIndex = 3;
+	skullMat->MatCBIndex = cbIndex++;
+	skullMat->DiffuseSrvHeapIndex = srvHeapIndex++;
 	skullMat->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	skullMat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
 	skullMat->Roughness = 0.3f;
 
 	auto diamond1Mat = std::make_unique<Material>();
 	diamond1Mat->Name = "diamond1Mat";
-	diamond1Mat->MatCBIndex = 4;
-	diamond1Mat->DiffuseSrvHeapIndex = 4;
+	diamond1Mat->MatCBIndex = cbIndex++;
+	diamond1Mat->DiffuseSrvHeapIndex = srvHeapIndex++;
 	diamond1Mat->DiffuseAlbedo = XMFLOAT4(Colors::Blue);
 	diamond1Mat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
 	diamond1Mat->Roughness = 0.1f;
 
 	auto diamond2Mat = std::make_unique<Material>();
 	diamond2Mat->Name = "diamond2Mat";
-	diamond2Mat->MatCBIndex = 5;
-	diamond2Mat->DiffuseSrvHeapIndex = 5;
+	diamond2Mat->MatCBIndex = cbIndex++;
+	diamond2Mat->DiffuseSrvHeapIndex = srvHeapIndex++;
 	diamond2Mat->DiffuseAlbedo = XMFLOAT4(Colors::Red);
 	diamond2Mat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
 	diamond2Mat->Roughness = 0.1f;
+
+	auto torusMat = std::make_unique<Material>();
+	torusMat->Name = "torusMat";
+	torusMat->MatCBIndex = cbIndex++;
+	torusMat->DiffuseSrvHeapIndex = srvHeapIndex++;
+	torusMat->DiffuseAlbedo = XMFLOAT4(Colors::Green);
+	torusMat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
+	torusMat->Roughness = 0.4f;
 
 	mMaterials["bricks0"] = std::move(bricks0);
 	mMaterials["stone0"] = std::move(stone0);
@@ -799,14 +831,17 @@ void ShapesApp::BuildMaterials()
 	mMaterials["skullMat"] = std::move(skullMat);
 	mMaterials["diamond1Mat"] = std::move(diamond1Mat);
 	mMaterials["diamond2Mat"] = std::move(diamond2Mat);
+	mMaterials["torusMat"] = std::move(torusMat);
 }
 
 void ShapesApp::BuildRenderItems()
 {
+	UINT objCBIndex = 0;
+
 	auto boxRitem = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(2.0f, 2.0f, 2.0f)*XMMatrixTranslation(0.0f, 0.5f, 0.0f));
 	XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
-	boxRitem->ObjCBIndex = 0;
+	boxRitem->ObjCBIndex = objCBIndex++;
 	boxRitem->Mat = mMaterials["stone0"].get();
 	boxRitem->Geo = mGeometries["shapeGeo"].get();
 	boxRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -814,11 +849,11 @@ void ShapesApp::BuildRenderItems()
 	boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
 	boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
 	mAllRitems.push_back(std::move(boxRitem));
-
+	
     auto gridRitem = std::make_unique<RenderItem>();
     gridRitem->World = MathHelper::Identity4x4();
 	XMStoreFloat4x4(&gridRitem->TexTransform, XMMatrixScaling(8.0f, 8.0f, 1.0f));
-	gridRitem->ObjCBIndex = 1;
+	gridRitem->ObjCBIndex = objCBIndex++;
 	gridRitem->Mat = mMaterials["tile0"].get();
 	gridRitem->Geo = mGeometries["shapeGeo"].get();
 	gridRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -826,11 +861,11 @@ void ShapesApp::BuildRenderItems()
     gridRitem->StartIndexLocation = gridRitem->Geo->DrawArgs["grid"].StartIndexLocation;
     gridRitem->BaseVertexLocation = gridRitem->Geo->DrawArgs["grid"].BaseVertexLocation;
 	mAllRitems.push_back(std::move(gridRitem));
-
+	
 	auto skullRitem = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&skullRitem->World, XMMatrixScaling(0.5f, 0.5f, 0.5f)*XMMatrixTranslation(0.0f, 1.0f, 0.0f));
 	skullRitem->TexTransform = MathHelper::Identity4x4();
-	skullRitem->ObjCBIndex = 2;
+	skullRitem->ObjCBIndex = objCBIndex++;
 	skullRitem->Mat = mMaterials["skullMat"].get();
 	skullRitem->Geo = mGeometries["skullGeo"].get();
 	skullRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -838,22 +873,21 @@ void ShapesApp::BuildRenderItems()
 	skullRitem->StartIndexLocation = skullRitem->Geo->DrawArgs["skull"].StartIndexLocation;
 	skullRitem->BaseVertexLocation = skullRitem->Geo->DrawArgs["skull"].BaseVertexLocation;
 	mAllRitems.push_back(std::move(skullRitem));
-
+	
 	XMMATRIX brickTexTransform = XMMatrixScaling(1.0f, 1.0f, 1.0f);
-	UINT objCBIndex = 3;
 	for(int i = 0; i < 5; ++i)
 	{
 		auto leftCylRitem = std::make_unique<RenderItem>();
 		auto rightCylRitem = std::make_unique<RenderItem>();
 		auto leftSphereRitem = std::make_unique<RenderItem>();
 		auto rightSphereRitem = std::make_unique<RenderItem>();
-
+	
 		XMMATRIX leftCylWorld = XMMatrixTranslation(-5.0f, 1.5f, -10.0f + i*5.0f);
 		XMMATRIX rightCylWorld = XMMatrixTranslation(+5.0f, 1.5f, -10.0f + i*5.0f);
-
+	
 		XMMATRIX leftSphereWorld = XMMatrixTranslation(-5.0f, 3.5f, -10.0f + i*5.0f);
 		XMMATRIX rightSphereWorld = XMMatrixTranslation(+5.0f, 3.5f, -10.0f + i*5.0f);
-
+	
 		XMStoreFloat4x4(&leftCylRitem->World, rightCylWorld);
 		XMStoreFloat4x4(&leftCylRitem->TexTransform, brickTexTransform);
 		leftCylRitem->ObjCBIndex = objCBIndex++;
@@ -863,7 +897,7 @@ void ShapesApp::BuildRenderItems()
 		leftCylRitem->IndexCount = leftCylRitem->Geo->DrawArgs["cylinder"].IndexCount;
 		leftCylRitem->StartIndexLocation = leftCylRitem->Geo->DrawArgs["cylinder"].StartIndexLocation;
 		leftCylRitem->BaseVertexLocation = leftCylRitem->Geo->DrawArgs["cylinder"].BaseVertexLocation;
-
+	
 		XMStoreFloat4x4(&rightCylRitem->World, leftCylWorld);
 		XMStoreFloat4x4(&rightCylRitem->TexTransform, brickTexTransform);
 		rightCylRitem->ObjCBIndex = objCBIndex++;
@@ -873,7 +907,7 @@ void ShapesApp::BuildRenderItems()
 		rightCylRitem->IndexCount = rightCylRitem->Geo->DrawArgs["cylinder"].IndexCount;
 		rightCylRitem->StartIndexLocation = rightCylRitem->Geo->DrawArgs["cylinder"].StartIndexLocation;
 		rightCylRitem->BaseVertexLocation = rightCylRitem->Geo->DrawArgs["cylinder"].BaseVertexLocation;
-
+	
 		XMStoreFloat4x4(&leftSphereRitem->World, leftSphereWorld);
 		leftSphereRitem->TexTransform = MathHelper::Identity4x4();
 		leftSphereRitem->ObjCBIndex = objCBIndex++;
@@ -883,7 +917,7 @@ void ShapesApp::BuildRenderItems()
 		leftSphereRitem->IndexCount = leftSphereRitem->Geo->DrawArgs["sphere"].IndexCount;
 		leftSphereRitem->StartIndexLocation = leftSphereRitem->Geo->DrawArgs["sphere"].StartIndexLocation;
 		leftSphereRitem->BaseVertexLocation = leftSphereRitem->Geo->DrawArgs["sphere"].BaseVertexLocation;
-
+	
 		XMStoreFloat4x4(&rightSphereRitem->World, rightSphereWorld);
 		rightSphereRitem->TexTransform = MathHelper::Identity4x4();
 		rightSphereRitem->ObjCBIndex = objCBIndex++;
@@ -893,13 +927,13 @@ void ShapesApp::BuildRenderItems()
 		rightSphereRitem->IndexCount = rightSphereRitem->Geo->DrawArgs["sphere"].IndexCount;
 		rightSphereRitem->StartIndexLocation = rightSphereRitem->Geo->DrawArgs["sphere"].StartIndexLocation;
 		rightSphereRitem->BaseVertexLocation = rightSphereRitem->Geo->DrawArgs["sphere"].BaseVertexLocation;
-
+	
 		mAllRitems.push_back(std::move(leftCylRitem));
 		mAllRitems.push_back(std::move(rightCylRitem));
 		mAllRitems.push_back(std::move(leftSphereRitem));
 		mAllRitems.push_back(std::move(rightSphereRitem));
 	}
-
+	
 	auto diamond1 = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&diamond1->World, XMMatrixScaling(0.4f, 0.6f, 0.4f)*XMMatrixTranslation(-0.65f, 2.6f, -0.65f));
 	diamond1->TexTransform = MathHelper::Identity4x4();
@@ -911,7 +945,7 @@ void ShapesApp::BuildRenderItems()
 	diamond1->StartIndexLocation = diamond1->Geo->DrawArgs["diamond"].StartIndexLocation;
 	diamond1->BaseVertexLocation = diamond1->Geo->DrawArgs["diamond"].BaseVertexLocation;
 	mAllRitems.push_back(std::move(diamond1));
-
+	
 	auto diamond2 = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&diamond2->World, XMMatrixScaling(0.4f, 0.6f, 0.4f)*XMMatrixTranslation(0.65f, 2.6f, -0.65f));
 	diamond2->TexTransform = MathHelper::Identity4x4();
