@@ -803,3 +803,44 @@ GeometryGenerator::MeshData GeometryGenerator::CreateQuad(float x, float y, floa
 
     return meshData;
 }
+
+GeometryGenerator::MeshData GeometryGenerator::CreateTorus(float a, float c, int outserStep, int innerStep)
+{
+	float phiStep = (2 * XM_PI) / outserStep;
+	float thetaStep = (2 * XM_PI) / innerStep;
+	MeshData meshData;
+
+	for (uint32 i = 1; i <= outserStep; ++i)
+	{
+		float phi = i*phiStep;
+
+		// Vertices of ring.
+		for (uint32 j = 0; j <= innerStep; ++j)
+		{
+			float theta = j*thetaStep;
+
+			Vertex v;
+
+			// parametric equations
+			v.Position.x = cosf(phi) * (a * cosf(theta) + c);
+			v.Position.y = a * sinf(theta);
+			v.Position.z = sinf(phi) * (a * cosf(theta) + c);
+
+			// Partial derivative of P with respect to theta
+			v.TangentU.x = cosf(phi);
+			v.TangentU.y = 0.0f;
+			v.TangentU.z = sinf(phi);
+
+			XMVECTOR T = XMLoadFloat3(&v.TangentU);
+			XMStoreFloat3(&v.TangentU, XMVector3Normalize(T));
+
+			XMVECTOR p = XMLoadFloat3(&v.Position);
+			XMStoreFloat3(&v.Normal, XMVector3Normalize(p));
+
+			v.TexC.x = theta / XM_2PI;
+			v.TexC.y = phi / XM_PI;
+
+			meshData.Vertices.push_back(v);
+		}
+	}
+}
