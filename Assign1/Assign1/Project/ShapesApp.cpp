@@ -500,6 +500,7 @@ void ShapesApp::BuildShapeGeometry()
 	GeometryGenerator::MeshData diamond = geoGen.CreateDiamond(0.0001f, 0.75f, 1.f, 0.75f, 1, 8, 3);
 	GeometryGenerator::MeshData torus = geoGen.CreateTorus(0.5f, 1.f, 40, 40);
 	GeometryGenerator::MeshData pyramid = geoGen.CreatePyramid(1, 1, 0.5f, 0.5f, 1, 3);
+	GeometryGenerator::MeshData prism = geoGen.CreatePrism(1, 0.5f, 0.5f, 3);
 
 
 	//
@@ -515,6 +516,8 @@ void ShapesApp::BuildShapeGeometry()
 	UINT diamondVertexOffset = cylinderVertexOffset + (UINT)cylinder.Vertices.size();
 	UINT torusVertexOffset = diamondVertexOffset + (UINT)diamond.Vertices.size();
 	UINT pyramidVertexOffset = torusVertexOffset + (UINT)torus.Vertices.size();
+	UINT prismVertexOffset = pyramidVertexOffset + (UINT)pyramid.Vertices.size();
+
 
 	// Cache the starting index for each object in the concatenated index buffer.
 	UINT boxIndexOffset = 0;
@@ -524,6 +527,7 @@ void ShapesApp::BuildShapeGeometry()
 	UINT diamondIndexOffset = cylinderIndexOffset + (UINT)cylinder.Indices32.size();
 	UINT torusIndexOffset = diamondIndexOffset + (UINT)diamond.Indices32.size();
 	UINT pyramidIndexOffset = torusIndexOffset + (UINT)torus.Indices32.size();
+	UINT prismIndexOffset = pyramidIndexOffset + (UINT)pyramid.Indices32.size();
 
 	SubmeshGeometry boxSubmesh;
 	boxSubmesh.IndexCount = (UINT)box.Indices32.size();
@@ -560,6 +564,11 @@ void ShapesApp::BuildShapeGeometry()
 	pyramidSubmesh.StartIndexLocation = pyramidIndexOffset;
 	pyramidSubmesh.BaseVertexLocation = pyramidVertexOffset;
 
+	SubmeshGeometry prismSubmesh;
+	prismSubmesh.IndexCount = (UINT)prism.Indices32.size();
+	prismSubmesh.StartIndexLocation = prismIndexOffset;
+	prismSubmesh.BaseVertexLocation = prismVertexOffset;
+
 	//
 	// Extract the vertex elements we are interested in and pack the
 	// vertices of all the meshes into one vertex buffer.
@@ -572,7 +581,8 @@ void ShapesApp::BuildShapeGeometry()
 		cylinder.Vertices.size() + 
 		diamond.Vertices.size() + 
 		torus.Vertices.size() + 
-		pyramid.Vertices.size();
+		pyramid.Vertices.size() +
+		prism.Vertices.size();
 
 	std::vector<Vertex> vertices(totalVertexCount);
 
@@ -619,6 +629,12 @@ void ShapesApp::BuildShapeGeometry()
 		vertices[k].Normal = pyramid.Vertices[i].Normal;
 	}
 
+	for (size_t i = 0; i < prism.Vertices.size(); ++i, ++k)
+	{
+		vertices[k].Pos = prism.Vertices[i].Position;
+		vertices[k].Normal = prism.Vertices[i].Normal;
+	}
+
 	std::vector<std::uint16_t> indices;
 	indices.insert(indices.end(), std::begin(box.GetIndices16()), std::end(box.GetIndices16()));
 	indices.insert(indices.end(), std::begin(grid.GetIndices16()), std::end(grid.GetIndices16()));
@@ -627,6 +643,7 @@ void ShapesApp::BuildShapeGeometry()
 	indices.insert(indices.end(), std::begin(diamond.GetIndices16()), std::end(diamond.GetIndices16()));
 	indices.insert(indices.end(), std::begin(torus.GetIndices16()), std::end(torus.GetIndices16()));
 	indices.insert(indices.end(), std::begin(pyramid.GetIndices16()), std::end(pyramid.GetIndices16()));
+	indices.insert(indices.end(), std::begin(prism.GetIndices16()), std::end(prism.GetIndices16()));
 
     const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
     const UINT ibByteSize = (UINT)indices.size()  * sizeof(std::uint16_t);
@@ -658,6 +675,7 @@ void ShapesApp::BuildShapeGeometry()
 	geo->DrawArgs["diamond"] = diamondSubmesh;
 	geo->DrawArgs["torus"] = torusSubmesh;
 	geo->DrawArgs["pyramid"] = pyramidSubmesh;
+	geo->DrawArgs["prism"] = prismSubmesh;
 
 	mGeometries[geo->Name] = std::move(geo);
 }
@@ -848,6 +866,14 @@ void ShapesApp::BuildMaterials()
 	pyramidMat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
 	pyramidMat->Roughness = 0.8f;
 
+	auto prismMat = std::make_unique<Material>();
+	prismMat->Name = "prismMat";
+	prismMat->MatCBIndex = cbIndex++;
+	prismMat->DiffuseSrvHeapIndex = srvHeapIndex++;
+	prismMat->DiffuseAlbedo = XMFLOAT4(Colors::Azure);
+	prismMat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
+	prismMat->Roughness = 0.3f;
+
 	mMaterials["bricks0"] = std::move(bricks0);
 	mMaterials["stone0"] = std::move(stone0);
 	mMaterials["tile0"] = std::move(tile0);
@@ -856,6 +882,7 @@ void ShapesApp::BuildMaterials()
 	mMaterials["diamond2Mat"] = std::move(diamond2Mat);
 	mMaterials["torusMat"] = std::move(torusMat);
 	mMaterials["pyramidMat"] = std::move(pyramidMat);
+	mMaterials["prismMat"] = std::move(prismMat);
 
 }
 
