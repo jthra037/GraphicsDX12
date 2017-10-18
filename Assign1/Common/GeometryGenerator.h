@@ -121,6 +121,8 @@ public:
 		float topWidth, float topDepth, 
 		float height, int numSubdivisions);
 
+	GeometryGenerator::MeshData CreatePrism(float width, float depth, float height, int numSubdivisions);
+
 private:
 	void Subdivide(MeshData& meshData);
     Vertex MidPoint(const Vertex& v0, const Vertex& v1);
