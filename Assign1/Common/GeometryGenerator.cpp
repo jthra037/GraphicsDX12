@@ -804,13 +804,13 @@ GeometryGenerator::MeshData GeometryGenerator::CreateQuad(float x, float y, floa
     return meshData;
 }
 
-GeometryGenerator::MeshData GeometryGenerator::CreateTorus(float a, float c, int outserStep, int innerStep)
+GeometryGenerator::MeshData GeometryGenerator::CreateTorus(float a, float c, int outerStep, int innerStep)
 {
-	float phiStep = (2 * XM_PI) / outserStep;
-	float thetaStep = (2 * XM_PI) / innerStep;
+	float phiStep = (XM_2PI) / outerStep;
+	float thetaStep = (XM_2PI) / innerStep;
 	MeshData meshData;
 
-	for (uint32 i = 1; i <= outserStep; ++i)
+	for (uint32 i = 0; i <= outerStep; ++i)
 	{
 		float phi = i*phiStep;
 
@@ -827,20 +827,44 @@ GeometryGenerator::MeshData GeometryGenerator::CreateTorus(float a, float c, int
 			v.Position.z = sinf(phi) * (a * cosf(theta) + c);
 
 			// Partial derivative of P with respect to theta
-			v.TangentU.x = cosf(phi);
+			v.TangentU.x = sinf(phi);
 			v.TangentU.y = 0.0f;
-			v.TangentU.z = sinf(phi);
+			v.TangentU.z = cosf(phi);
 
 			XMVECTOR T = XMLoadFloat3(&v.TangentU);
 			XMStoreFloat3(&v.TangentU, XMVector3Normalize(T));
 
 			XMVECTOR p = XMLoadFloat3(&v.Position);
-			XMStoreFloat3(&v.Normal, XMVector3Normalize(p));
+			XMStoreFloat3(&v.Normal, -1 * XMVector3Normalize(p));
 
 			v.TexC.x = theta / XM_2PI;
-			v.TexC.y = phi / XM_PI;
+			v.TexC.y = phi / XM_2PI;
 
 			meshData.Vertices.push_back(v);
 		}
 	}
+
+	for (int i = 0; i < outerStep; i++)
+	{
+		for (int j = 0; j < innerStep; j++)
+		{
+			//meshData.Indices32.push_back(((j + 1) % innerStep) + (innerStep * i));
+			//meshData.Indices32.push_back(j + (innerStep * i));
+			//meshData.Indices32.push_back(j + (innerStep * (i + 1)) % outerStep);
+			//
+			//meshData.Indices32.push_back(((j + 1) % innerStep) + (innerStep * i));
+			//meshData.Indices32.push_back(j + (innerStep * (i + 1)) % outerStep);
+			//meshData.Indices32.push_back(((j + 1) % innerStep) + (innerStep * (i + 1))  % outerStep);
+
+			meshData.Indices32.push_back(((j + 1) % innerStep) + (innerStep * ((i + 1) % outerStep)));
+			meshData.Indices32.push_back(j + (innerStep * ((i + 1) % outerStep)));
+			meshData.Indices32.push_back(((j + 1) % innerStep) + (innerStep * i));
+
+			meshData.Indices32.push_back(j + (innerStep * ((i + 1) % outerStep)));
+			meshData.Indices32.push_back(j + (innerStep * i));
+			meshData.Indices32.push_back(((j + 1) % innerStep) + (innerStep * i));
+		}
+	}
+
+	return meshData;
 }
