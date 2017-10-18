@@ -835,10 +835,10 @@ GeometryGenerator::MeshData GeometryGenerator::CreateTorus(float a, float c, int
 			XMStoreFloat3(&v.TangentU, XMVector3Normalize(T));
 
 			XMVECTOR p = XMLoadFloat3(&v.Position);
-			XMStoreFloat3(&v.Normal, -1 * XMVector3Normalize(p));
+			XMStoreFloat3(&v.Normal, XMVector3Normalize(p));
 
-			v.TexC.x = theta / XM_2PI;
-			v.TexC.y = phi / XM_2PI;
+			v.TexC.x = phi / XM_2PI;
+			v.TexC.y = theta / XM_2PI;
 
 			meshData.Vertices.push_back(v);
 		}
