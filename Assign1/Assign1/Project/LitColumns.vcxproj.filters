@@ -36,7 +36,7 @@
     <ClCompile Include="FrameResource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LitColumnsApp.cpp">
+    <ClCompile Include="ShapesApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

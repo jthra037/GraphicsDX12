@@ -150,7 +150,7 @@
     <ClCompile Include="..\..\Common\GeometryGenerator.cpp" />
     <ClCompile Include="..\..\Common\MathHelper.cpp" />
     <ClCompile Include="FrameResource.cpp" />
-    <ClCompile Include="LitColumnsApp.cpp" />
+    <ClCompile Include="ShapesApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\d3dApp.h" />
