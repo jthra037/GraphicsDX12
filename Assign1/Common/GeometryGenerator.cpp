@@ -1047,4 +1047,77 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePrism(float width, float de
 	return meshData;
 }
 
+GeometryGenerator::MeshData GeometryGenerator::CreateWedge(float width, float depth, float height, int numSubdivisions)
+{
+	MeshData meshData;
+
+	float h2 = height / 2;
+	float d2 = depth / 2;
+	float w2 = width / 2;
+
+	//Vertex Data
+	Vertex v[18];
+
+	//Front face
+	v[0] = Vertex(-w2, -h2, -d2, 0, height / depth, -depth / height, 1, 0, 0, 0, 0);
+	v[1] = Vertex(-w2, +h2, -d2, 0, height / depth, -depth / height, 1, 0, 0, 0, 1);
+	v[2] = Vertex(+w2, +h2, -d2, 0, height / depth, -depth / height, 1, 0, 0, 1, 1);
+	v[3] = Vertex(+w2, -h2, -d2, 0, height / depth, -depth / height, 1, 0, 0, 1, 0);
+
+	//Back face
+	v[4] = Vertex(-w2, -h2, +d2, 0.0f, 0.0f, 1.0f, -1, 0, 0, 0, 0);
+	v[5] = Vertex(+w2, -h2, +d2, 0.0f, 0.0f, 1.0f, -1, 0, 0, 1, 0);
+	v[6] = Vertex(+w2, +h2, -d2, 0.0f, 0.0f, 1.0f, -1, 0, 0, 1, 1);
+	v[7] = Vertex(-w2, +h2, -d2, 0.0f, 0.0f, 1.0f, -1, 0, 0, 0, 1);
+
+	//Bottom face
+	v[8] = Vertex(-w2, -h2, -d2, 0, -1, 0, -1, 0, 0, 0, 0);
+	v[9] = Vertex(+w2, -h2, -d2, 0, -1, 0, -1, 0, 0, 1, 0);
+	v[10] = Vertex(+w2, -h2, +d2, 0, -1, 0, -1, 0, 0, 1, 1);
+	v[11] = Vertex(-w2, -h2, +d2, 0, -1, 0, -1, 0, 0, 0, 1);
+
+	//Right face
+	v[12] = Vertex(+w2, -h2, -d2, 1, 0, 0, 0, 0, 1, 0, 0);
+	v[13] = Vertex(+w2, +h2, -d2, 1, 0, 0, 0, 0, 1, 0, 1);
+	v[14] = Vertex(+w2, -h2, +d2, 1, 0, 0, 0, 0, 1, 1, 0);
+
+	//Left face
+	v[15] = Vertex(-w2, -h2, -d2, -1, 0, 0, 0, 0, -1, 0, 0);
+	v[16] = Vertex(-w2, +h2, -d2, -1, 0, 0, 0, 0, -1, 0, 1);
+	v[17] = Vertex(-w2, -h2, +d2, -1, 0, 0, 0, 0, -1, 1, 0);
+
+	meshData.Vertices.assign(&v[0], &v[18]);
+
+
+	//Indice Data
+	uint32 i[24];
+	//Front face
+	i[0] = 0; i[1] = 1; i[2] = 2;
+	i[3] = 0; i[4] = 2; i[5] = 3;
+
+	//Back face
+	i[6] = 4; i[7] = 5; i[8] = 6;
+	i[9] = 4; i[10] = 6; i[11] = 7;
+
+	//Bottom face
+	i[12] = 8; i[13] = 9; i[14] = 10;
+	i[15] = 8; i[16] = 10; i[17] = 11;
+
+	//Right face
+	i[18] = 12; i[19] = 13; i[20] = 14;
+
+	//Left face
+	i[21] = 17; i[22] = 16; i[23] = 15;
+
+	meshData.Indices32.assign(&i[0], &i[24]);
+
+	// Put a cap on the number of subdivisions.
+	//numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
+	//
+	//for (uint32 i = 0; i < numSubdivisions; ++i)
+	//	Subdivide(meshData);
+
+	return meshData;
+}
+
 

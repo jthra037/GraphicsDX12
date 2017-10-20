@@ -80,6 +80,12 @@ public:
 	///</summary>
     MeshData CreateBox(float width, float height, float depth, uint32 numSubdivisions);
 
+	///<summary>
+	/// Creates a wedge centered at the origin with the given dimensions, where each
+	/// face has m rows and n columns of vertices.
+	///</summary>
+	MeshData CreateWedge(float width, float depth, float height, int numSubdivisions);
+
 	GeometryGenerator::MeshData CreateDiamond(float bottomRadius, float topRadius, float middleRadius, float height1, float height2, uint32 sliceCount, uint32 stackCount);
 
 	///<summary>
