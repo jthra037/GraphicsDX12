@@ -500,8 +500,8 @@ void ShapesApp::BuildShapeGeometry()
 	GeometryGenerator::MeshData diamond = geoGen.CreateDiamond(0.0001f, 0.75f, 1.f, 0.75f, 1, 8, 3);
 	GeometryGenerator::MeshData torus = geoGen.CreateTorus(0.5f, 1.f, 40, 40);
 	GeometryGenerator::MeshData pyramid = geoGen.CreatePyramid(1, 1, 0.5f, 0.5f, 1, 3);
-	GeometryGenerator::MeshData prism = geoGen.CreatePrism(1, 0.5f, 0.5f, 3);
-
+	GeometryGenerator::MeshData prism = geoGen.CreatePrism(1, 1.f, 1.f, 3);
+	GeometryGenerator::MeshData wedge = geoGen.CreateWedge(1, 1.f, 1.f, 3);
 
 	//
 	// We are concatenating all the geometry into one big vertex/index buffer.  So
@@ -517,6 +517,7 @@ void ShapesApp::BuildShapeGeometry()
 	UINT torusVertexOffset = diamondVertexOffset + (UINT)diamond.Vertices.size();
 	UINT pyramidVertexOffset = torusVertexOffset + (UINT)torus.Vertices.size();
 	UINT prismVertexOffset = pyramidVertexOffset + (UINT)pyramid.Vertices.size();
+	UINT wedgeVertexOffset = prismVertexOffset + (UINT)prism.Vertices.size();
 
 
 	// Cache the starting index for each object in the concatenated index buffer.
@@ -528,6 +529,7 @@ void ShapesApp::BuildShapeGeometry()
 	UINT torusIndexOffset = diamondIndexOffset + (UINT)diamond.Indices32.size();
 	UINT pyramidIndexOffset = torusIndexOffset + (UINT)torus.Indices32.size();
 	UINT prismIndexOffset = pyramidIndexOffset + (UINT)pyramid.Indices32.size();
+	UINT wedgeIndexOffset = prismIndexOffset + (UINT)prism.Indices32.size();
 
 	SubmeshGeometry boxSubmesh;
 	boxSubmesh.IndexCount = (UINT)box.Indices32.size();
@@ -569,6 +571,11 @@ void ShapesApp::BuildShapeGeometry()
 	prismSubmesh.StartIndexLocation = prismIndexOffset;
 	prismSubmesh.BaseVertexLocation = prismVertexOffset;
 
+	SubmeshGeometry wedgeSubmesh;
+	wedgeSubmesh.IndexCount = (UINT)wedge.Indices32.size();
+	wedgeSubmesh.StartIndexLocation = wedgeIndexOffset;
+	wedgeSubmesh.BaseVertexLocation = wedgeVertexOffset;
+
 	//
 	// Extract the vertex elements we are interested in and pack the
 	// vertices of all the meshes into one vertex buffer.
@@ -582,7 +589,8 @@ void ShapesApp::BuildShapeGeometry()
 		diamond.Vertices.size() + 
 		torus.Vertices.size() + 
 		pyramid.Vertices.size() +
-		prism.Vertices.size();
+		prism.Vertices.size() + 
+		wedge.Vertices.size();
 
 	std::vector<Vertex> vertices(totalVertexCount);
 
@@ -635,6 +643,12 @@ void ShapesApp::BuildShapeGeometry()
 		vertices[k].Normal = prism.Vertices[i].Normal;
 	}
 
+	for (size_t i = 0; i < wedge.Vertices.size(); ++i, ++k)
+	{
+		vertices[k].Pos = wedge.Vertices[i].Position;
+		vertices[k].Normal = wedge.Vertices[i].Normal;
+	}
+
 	std::vector<std::uint16_t> indices;
 	indices.insert(indices.end(), std::begin(box.GetIndices16()), std::end(box.GetIndices16()));
 	indices.insert(indices.end(), std::begin(grid.GetIndices16()), std::end(grid.GetIndices16()));
@@ -644,6 +658,8 @@ void ShapesApp::BuildShapeGeometry()
 	indices.insert(indices.end(), std::begin(torus.GetIndices16()), std::end(torus.GetIndices16()));
 	indices.insert(indices.end(), std::begin(pyramid.GetIndices16()), std::end(pyramid.GetIndices16()));
 	indices.insert(indices.end(), std::begin(prism.GetIndices16()), std::end(prism.GetIndices16()));
+	indices.insert(indices.end(), std::begin(wedge.GetIndices16()), std::end(wedge.GetIndices16()));
+
 
     const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
     const UINT ibByteSize = (UINT)indices.size()  * sizeof(std::uint16_t);
@@ -676,6 +692,8 @@ void ShapesApp::BuildShapeGeometry()
 	geo->DrawArgs["torus"] = torusSubmesh;
 	geo->DrawArgs["pyramid"] = pyramidSubmesh;
 	geo->DrawArgs["prism"] = prismSubmesh;
+	geo->DrawArgs["wedge"] = wedgeSubmesh;
+
 
 	mGeometries[geo->Name] = std::move(geo);
 }
@@ -874,6 +892,14 @@ void ShapesApp::BuildMaterials()
 	prismMat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
 	prismMat->Roughness = 0.3f;
 
+	auto wedgeMat = std::make_unique<Material>();
+	wedgeMat->Name = "wedgeMat";
+	wedgeMat->MatCBIndex = cbIndex++;
+	wedgeMat->DiffuseSrvHeapIndex = srvHeapIndex++;
+	wedgeMat->DiffuseAlbedo = XMFLOAT4(Colors::PaleVioletRed);
+	wedgeMat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
+	wedgeMat->Roughness = 0.3f;
+
 	mMaterials["bricks0"] = std::move(bricks0);
 	mMaterials["stone0"] = std::move(stone0);
 	mMaterials["tile0"] = std::move(tile0);
@@ -883,6 +909,8 @@ void ShapesApp::BuildMaterials()
 	mMaterials["torusMat"] = std::move(torusMat);
 	mMaterials["pyramidMat"] = std::move(pyramidMat);
 	mMaterials["prismMat"] = std::move(prismMat);
+	mMaterials["wedgeMat"] = std::move(wedgeMat);
+
 
 }
 
