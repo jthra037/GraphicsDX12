@@ -806,17 +806,21 @@ GeometryGenerator::MeshData GeometryGenerator::CreateQuad(float x, float y, floa
 
 GeometryGenerator::MeshData GeometryGenerator::CreateTorus(float a, float c, int outerStep, int innerStep)
 {
+	//Angles 
 	float phiStep = (XM_2PI) / outerStep;
 	float thetaStep = (XM_2PI) / innerStep;
 	MeshData meshData;
 
+	//Count around the ring
 	for (uint32 i = 0; i <= outerStep; ++i)
 	{
+		//Pick a spot depending on where we are in the iteration
 		float phi = i*phiStep;
 
-		// Vertices of ring.
+		// Vertices of ring
 		for (uint32 j = 0; j <= innerStep; ++j)
 		{
+			//Find the spot on this ring
 			float theta = j*thetaStep;
 
 			Vertex v;
@@ -826,20 +830,23 @@ GeometryGenerator::MeshData GeometryGenerator::CreateTorus(float a, float c, int
 			v.Position.y = a * sinf(theta);
 			v.Position.z = sinf(phi) * (a * cosf(theta) + c);
 
-			// Partial derivative of P with respect to theta
+			//Start at the centre of the ring and look at the point
 			v.TangentU.x = sinf(phi);
 			v.TangentU.y = 0.0f;
 			v.TangentU.z = cosf(phi);
 
+			//Load data
 			XMVECTOR T = XMLoadFloat3(&v.TangentU);
 			XMStoreFloat3(&v.TangentU, XMVector3Normalize(T));
 
 			XMVECTOR p = XMLoadFloat3(&v.Position);
 			XMStoreFloat3(&v.Normal, XMVector3Normalize(p));
 
+			//Take shameless guesses at UV's
 			v.TexC.x = phi / XM_2PI;
 			v.TexC.y = theta / XM_2PI;
 
+			//Save game
 			meshData.Vertices.push_back(v);
 		}
 	}
@@ -848,14 +855,6 @@ GeometryGenerator::MeshData GeometryGenerator::CreateTorus(float a, float c, int
 	{
 		for (int j = 0; j < innerStep; j++)
 		{
-			//meshData.Indices32.push_back(((j + 1) % innerStep) + (innerStep * i));
-			//meshData.Indices32.push_back(j + (innerStep * i));
-			//meshData.Indices32.push_back(j + (innerStep * (i + 1)) % outerStep);
-			//
-			//meshData.Indices32.push_back(((j + 1) % innerStep) + (innerStep * i));
-			//meshData.Indices32.push_back(j + (innerStep * (i + 1)) % outerStep);
-			//meshData.Indices32.push_back(((j + 1) % innerStep) + (innerStep * (i + 1))  % outerStep);
-
 			meshData.Indices32.push_back(((j + 1) % innerStep) + (innerStep * ((i + 1) % outerStep)));
 			meshData.Indices32.push_back(j + (innerStep * ((i + 1) % outerStep)));
 			meshData.Indices32.push_back(((j + 1) % innerStep) + (innerStep * i));
@@ -875,22 +874,20 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float bottomWidth, 
 {
 	MeshData meshData;
 
-	//
 	// Create the vertices.
-	//
-
 	Vertex v[24];
 
+	//
 	float bw2 = 0.5f*bottomWidth;
 	float h2 = 0.5f*height;
 	float bd2 = 0.5f*bottomDepth;
 	float tw2 = 0.5f*topWidth;
 	float td2 = 0.5f*topDepth;
 
+	//Do math for normals
 	float diffW = bw2 - tw2;
 	float runW = height / abs(diffW);
 	float riseW = diffW / height;
-
 	float diffD = bd2 - td2;
 	float runD = height / abs(diffD);
 	float riseD = diffD / height;
@@ -1013,11 +1010,12 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePrism(float width, float de
 	v[16] = Vertex(-w2, +h2, 0.f, -1, 0, 0, 0, 0, -1, 0.5f, 1);
 	v[17] = Vertex(-w2, -h2, +d2, -1, 0, 0, 0, 0, -1, 1, 0);
 
+	//Store vertices
 	meshData.Vertices.assign(&v[0], &v[18]);
-
 
 	//Indice Data
 	uint32 i[24];
+
 	//Front face
 	i[0] = 0; i[1] = 1; i[2] = 2;
 	i[3] = 0; i[4] = 2; i[5] = 3;
@@ -1036,13 +1034,8 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePrism(float width, float de
 	//Left face
 	i[21] = 17; i[22] = 16; i[23] = 15;
 
+	//Store indices
 	meshData.Indices32.assign(&i[0], &i[24]);
-
-	// Put a cap on the number of subdivisions.
-	//numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
-	//
-	//for (uint32 i = 0; i < numSubdivisions; ++i)
-	//	Subdivide(meshData);
 
 	return meshData;
 }
