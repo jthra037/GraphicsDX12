@@ -820,13 +820,13 @@ void ShapesApp::BuildMaterials()
 	int cbIndex = 0;
 	int srvHeapIndex = 0;
 
-	auto bricks0 = std::make_unique<Material>();
-	bricks0->Name = "bricks0";
-	bricks0->MatCBIndex = cbIndex++;
-	bricks0->DiffuseSrvHeapIndex = srvHeapIndex++;
-	bricks0->DiffuseAlbedo = XMFLOAT4(Colors::Gold);
-	bricks0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
-	bricks0->Roughness = 0.01f;
+	auto gold = std::make_unique<Material>();
+	gold->Name = "gold";
+	gold->MatCBIndex = cbIndex++;
+	gold->DiffuseSrvHeapIndex = srvHeapIndex++;
+	gold->DiffuseAlbedo = XMFLOAT4(Colors::Gold);
+	gold->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	gold->Roughness = 0.01f;
 
 	auto stone0 = std::make_unique<Material>();
 	stone0->Name = "stone0";
@@ -834,21 +834,21 @@ void ShapesApp::BuildMaterials()
 	stone0->DiffuseSrvHeapIndex = srvHeapIndex++;
 	stone0->DiffuseAlbedo = XMFLOAT4(Colors::LightSteelBlue);
 	stone0->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05f);
-	stone0->Roughness = 0.3f;
+	stone0->Roughness = 0.8f;
  
 	auto tile0 = std::make_unique<Material>();
 	tile0->Name = "tile0";
 	tile0->MatCBIndex = cbIndex++;
 	tile0->DiffuseSrvHeapIndex = srvHeapIndex++;
-	tile0->DiffuseAlbedo = XMFLOAT4(Colors::LightGray);
+	tile0->DiffuseAlbedo = XMFLOAT4(Colors::ForestGreen);
 	tile0->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
-	tile0->Roughness = 0.2f;
+	tile0->Roughness = 0.8f;
 
 	auto skullMat = std::make_unique<Material>();
 	skullMat->Name = "skullMat";
-	skullMat->MatCBIndex = cbIndex++;
+	skullMat->MatCBIndex = cbIndex++; 
 	skullMat->DiffuseSrvHeapIndex = srvHeapIndex++;
-	skullMat->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	skullMat->DiffuseAlbedo = XMFLOAT4(0.3f, 0.3f, 0.5f, 0.5f);
 	skullMat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
 	skullMat->Roughness = 0.3f;
 
@@ -856,17 +856,17 @@ void ShapesApp::BuildMaterials()
 	diamond1Mat->Name = "diamond1Mat";
 	diamond1Mat->MatCBIndex = cbIndex++;
 	diamond1Mat->DiffuseSrvHeapIndex = srvHeapIndex++;
-	diamond1Mat->DiffuseAlbedo = XMFLOAT4(Colors::Blue);
+	diamond1Mat->DiffuseAlbedo = XMFLOAT4(0.45f, 0.15f, 0.2f, 0.8f);
 	diamond1Mat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
-	diamond1Mat->Roughness = 0.1f;
+	diamond1Mat->Roughness = 0.3f;
 
 	auto diamond2Mat = std::make_unique<Material>();
 	diamond2Mat->Name = "diamond2Mat";
 	diamond2Mat->MatCBIndex = cbIndex++;
 	diamond2Mat->DiffuseSrvHeapIndex = srvHeapIndex++;
-	diamond2Mat->DiffuseAlbedo = XMFLOAT4(Colors::Red);
+	diamond2Mat->DiffuseAlbedo = XMFLOAT4(Colors::DimGray);
 	diamond2Mat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
-	diamond2Mat->Roughness = 0.1f;
+	diamond2Mat->Roughness = 0.8f;
 
 	auto torusMat = std::make_unique<Material>();
 	torusMat->Name = "torusMat";
@@ -888,19 +888,19 @@ void ShapesApp::BuildMaterials()
 	prismMat->Name = "prismMat";
 	prismMat->MatCBIndex = cbIndex++;
 	prismMat->DiffuseSrvHeapIndex = srvHeapIndex++;
-	prismMat->DiffuseAlbedo = XMFLOAT4(Colors::Azure);
+	prismMat->DiffuseAlbedo = XMFLOAT4(Colors::CornflowerBlue);
 	prismMat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
-	prismMat->Roughness = 0.3f;
+	prismMat->Roughness = 0.7f;
 
 	auto wedgeMat = std::make_unique<Material>();
 	wedgeMat->Name = "wedgeMat";
 	wedgeMat->MatCBIndex = cbIndex++;
 	wedgeMat->DiffuseSrvHeapIndex = srvHeapIndex++;
-	wedgeMat->DiffuseAlbedo = XMFLOAT4(Colors::PaleVioletRed);
+	wedgeMat->DiffuseAlbedo = XMFLOAT4(Colors::Sienna);
 	wedgeMat->FresnelR0 = XMFLOAT3(0.05f, 0.05f, 0.05);
-	wedgeMat->Roughness = 0.3f;
+	wedgeMat->Roughness = 0.55f;
 
-	mMaterials["bricks0"] = std::move(bricks0);
+	mMaterials["gold"] = std::move(gold);
 	mMaterials["stone0"] = std::move(stone0);
 	mMaterials["tile0"] = std::move(tile0);
 	mMaterials["skullMat"] = std::move(skullMat);
@@ -936,7 +936,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&keepRoofPyramid->World, XMMatrixScaling(12.0f, 4.0f, 8.0f)*XMMatrixTranslation(0.0f, 16.0f, 0.0f));
 	XMStoreFloat4x4(&keepRoofPyramid->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	keepRoofPyramid->ObjCBIndex = objCBIndex++;
-	keepRoofPyramid->Mat = mMaterials["stone0"].get();
+	keepRoofPyramid->Mat = mMaterials["wedgeMat"].get();
 	keepRoofPyramid->Geo = mGeometries["shapeGeo"].get();
 	keepRoofPyramid->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	keepRoofPyramid->IndexCount = keepRoofPyramid->Geo->DrawArgs["pyramid"].IndexCount;
@@ -949,7 +949,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&keepStairsWedge->World, XMMatrixScaling(5.0f, 2.0f, 3.0f)*XMMatrixRotationRollPitchYaw(0.0f, XM_PI, 0.0f)*XMMatrixTranslation(0.0f, 1.0f, -4.5f));
 	XMStoreFloat4x4(&keepStairsWedge->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	keepStairsWedge->ObjCBIndex = objCBIndex++;
-	keepStairsWedge->Mat = mMaterials["stone0"].get();
+	keepStairsWedge->Mat = mMaterials["wedgeMat"].get();
 	keepStairsWedge->Geo = mGeometries["shapeGeo"].get();
 	keepStairsWedge->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	keepStairsWedge->IndexCount = keepStairsWedge->Geo->DrawArgs["wedge"].IndexCount;
@@ -1027,7 +1027,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&RLTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(-13.0f, 4.0f, 11.0f));
 	XMStoreFloat4x4(&RLTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RLTowerBox->ObjCBIndex = objCBIndex++;
-	RLTowerBox->Mat = mMaterials["stone0"].get();
+	RLTowerBox->Mat = mMaterials["diamond2Mat"].get();
 	RLTowerBox->Geo = mGeometries["shapeGeo"].get();
 	RLTowerBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	RLTowerBox->IndexCount = RLTowerBox->Geo->DrawArgs["box"].IndexCount;
@@ -1040,7 +1040,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&RRTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(13.0f, 4.0f, 11.0f));
 	XMStoreFloat4x4(&RRTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RRTowerBox->ObjCBIndex = objCBIndex++;
-	RRTowerBox->Mat = mMaterials["stone0"].get();
+	RRTowerBox->Mat = mMaterials["diamond2Mat"].get();
 	RRTowerBox->Geo = mGeometries["shapeGeo"].get();
 	RRTowerBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	RRTowerBox->IndexCount = RRTowerBox->Geo->DrawArgs["box"].IndexCount;
@@ -1053,7 +1053,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&FLTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(-13.0f, 4.0f, -17.0f));
 	XMStoreFloat4x4(&FLTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FLTowerBox->ObjCBIndex = objCBIndex++;
-	FLTowerBox->Mat = mMaterials["stone0"].get();
+	FLTowerBox->Mat = mMaterials["diamond2Mat"].get();
 	FLTowerBox->Geo = mGeometries["shapeGeo"].get();
 	FLTowerBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	FLTowerBox->IndexCount = FLTowerBox->Geo->DrawArgs["box"].IndexCount;
@@ -1066,7 +1066,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&FRTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(13.0f, 4.0f, -17.0f));
 	XMStoreFloat4x4(&FRTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FRTowerBox->ObjCBIndex = objCBIndex++;
-	FRTowerBox->Mat = mMaterials["stone0"].get();
+	FRTowerBox->Mat = mMaterials["diamond2Mat"].get();
 	FRTowerBox->Geo = mGeometries["shapeGeo"].get();
 	FRTowerBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	FRTowerBox->IndexCount = FRTowerBox->Geo->DrawArgs["box"].IndexCount;
@@ -1081,7 +1081,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&RLTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(-13.0f, 10.0f, 11.0f));
 	XMStoreFloat4x4(&RLTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RLTowerCap->ObjCBIndex = objCBIndex++;
-	RLTowerCap->Mat = mMaterials["stone0"].get();
+	RLTowerCap->Mat = mMaterials["prismMat"].get();
 	RLTowerCap->Geo = mGeometries["shapeGeo"].get();
 	RLTowerCap->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	RLTowerCap->IndexCount = RLTowerCap->Geo->DrawArgs["cylinder"].IndexCount;
@@ -1094,7 +1094,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&RRTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(13.0f, 10.0f, 11.0f));
 	XMStoreFloat4x4(&RRTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RRTowerCap->ObjCBIndex = objCBIndex++;
-	RRTowerCap->Mat = mMaterials["stone0"].get();
+	RRTowerCap->Mat = mMaterials["prismMat"].get();
 	RRTowerCap->Geo = mGeometries["shapeGeo"].get();
 	RRTowerCap->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	RRTowerCap->IndexCount = RRTowerCap->Geo->DrawArgs["cylinder"].IndexCount;
@@ -1107,7 +1107,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&FLTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(-13.0f, 10.0f, -17.0f));
 	XMStoreFloat4x4(&FLTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FLTowerCap->ObjCBIndex = objCBIndex++;
-	FLTowerCap->Mat = mMaterials["stone0"].get();
+	FLTowerCap->Mat = mMaterials["prismMat"].get();
 	FLTowerCap->Geo = mGeometries["shapeGeo"].get();
 	FLTowerCap->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	FLTowerCap->IndexCount = FLTowerCap->Geo->DrawArgs["cylinder"].IndexCount;
@@ -1120,7 +1120,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&FRTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(13.0f, 10.0f, -17.0f));
 	XMStoreFloat4x4(&FRTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FRTowerCap->ObjCBIndex = objCBIndex++;
-	FRTowerCap->Mat = mMaterials["stone0"].get();
+	FRTowerCap->Mat = mMaterials["prismMat"].get();
 	FRTowerCap->Geo = mGeometries["shapeGeo"].get();
 	FRTowerCap->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	FRTowerCap->IndexCount = FRTowerCap->Geo->DrawArgs["cylinder"].IndexCount;
@@ -1138,7 +1138,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&leftGateBox->World, XMMatrixScaling(4.0f, 8.0f, 3.0f)*XMMatrixTranslation(-4.0f, 4.0f, -18.0f));
 	XMStoreFloat4x4(&leftGateBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	leftGateBox->ObjCBIndex = objCBIndex++;
-	leftGateBox->Mat = mMaterials["stone0"].get();
+	leftGateBox->Mat = mMaterials["diamond2Mat"].get();
 	leftGateBox->Geo = mGeometries["shapeGeo"].get();
 	leftGateBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	leftGateBox->IndexCount = leftGateBox->Geo->DrawArgs["box"].IndexCount;
@@ -1151,7 +1151,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&rightGateBox->World, XMMatrixScaling(4.0f, 8.0f, 3.0f)*XMMatrixTranslation(4.0f, 4.0f, -18.0f));
 	XMStoreFloat4x4(&rightGateBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	rightGateBox->ObjCBIndex = objCBIndex++;
-	rightGateBox->Mat = mMaterials["stone0"].get();
+	rightGateBox->Mat = mMaterials["diamond2Mat"].get();
 	rightGateBox->Geo = mGeometries["shapeGeo"].get();
 	rightGateBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	rightGateBox->IndexCount = rightGateBox->Geo->DrawArgs["box"].IndexCount;
@@ -1164,7 +1164,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&leftGateWedge->World, XMMatrixScaling(3.0f, 3.0f, 6.0f)*XMMatrixRotationRollPitchYaw(0.0f, -XM_PI/2, 0.0f)*XMMatrixTranslation(-3.0f, 9.5f, -18.0f));
 	XMStoreFloat4x4(&leftGateWedge->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	leftGateWedge->ObjCBIndex = objCBIndex++;
-	leftGateWedge->Mat = mMaterials["stone0"].get();
+	leftGateWedge->Mat = mMaterials["wedgeMat"].get();
 	leftGateWedge->Geo = mGeometries["shapeGeo"].get();
 	leftGateWedge->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	leftGateWedge->IndexCount = leftGateWedge->Geo->DrawArgs["wedge"].IndexCount;
@@ -1177,7 +1177,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&rightGateWedge->World, XMMatrixScaling(3.0f, 3.0f, 6.0f)*XMMatrixRotationRollPitchYaw(0.0f, XM_PI / 2, 0.0f)*XMMatrixTranslation(3.0f, 9.5f, -18.0f));
 	XMStoreFloat4x4(&rightGateWedge->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	rightGateWedge->ObjCBIndex = objCBIndex++;
-	rightGateWedge->Mat = mMaterials["stone0"].get();
+	rightGateWedge->Mat = mMaterials["wedgeMat"].get();
 	rightGateWedge->Geo = mGeometries["shapeGeo"].get();
 	rightGateWedge->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	rightGateWedge->IndexCount = rightGateWedge->Geo->DrawArgs["wedge"].IndexCount;
@@ -1190,7 +1190,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&diamond1->World, XMMatrixScaling(1.0f, 3.0f, 1.0f)*XMMatrixTranslation(-5.0f, 0.0f, -8.0f));
 	XMStoreFloat4x4(&diamond1->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	diamond1->ObjCBIndex = objCBIndex++;
-	diamond1->Mat = mMaterials["stone0"].get();
+	diamond1->Mat = mMaterials["skullMat"].get();
 	diamond1->Geo = mGeometries["shapeGeo"].get();
 	diamond1->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	diamond1->IndexCount = diamond1->Geo->DrawArgs["diamond"].IndexCount;
@@ -1203,7 +1203,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&diamond2->World, XMMatrixScaling(1.0f, 3.0f, 1.0f)*XMMatrixTranslation(5.0f, 0.0f, -8.0f));
 	XMStoreFloat4x4(&diamond2->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	diamond2->ObjCBIndex = objCBIndex++;
-	diamond2->Mat = mMaterials["stone0"].get();
+	diamond2->Mat = mMaterials["skullMat"].get();
 	diamond2->Geo = mGeometries["shapeGeo"].get();
 	diamond2->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	diamond2->IndexCount = diamond2->Geo->DrawArgs["diamond"].IndexCount;
@@ -1229,7 +1229,7 @@ void ShapesApp::BuildRenderItems()
 	XMStoreFloat4x4(&skullRitem->World, XMMatrixScaling(0.2f, 0.2f, 0.2f)*XMMatrixTranslation(-5.0f, 3.0f, -8.0f));
 	skullRitem->TexTransform = MathHelper::Identity4x4();
 	skullRitem->ObjCBIndex = objCBIndex++;
-	skullRitem->Mat = mMaterials["skullMat"].get();
+	skullRitem->Mat = mMaterials["diamond1Mat"].get();
 	skullRitem->Geo = mGeometries["skullGeo"].get();
 	skullRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	skullRitem->IndexCount = skullRitem->Geo->DrawArgs["skull"].IndexCount;
@@ -1272,7 +1272,7 @@ void ShapesApp::BuildRenderItems()
 		XMStoreFloat4x4(&leftCylRitem->World, rightCylWorld);
 		XMStoreFloat4x4(&leftCylRitem->TexTransform, brickTexTransform);
 		leftCylRitem->ObjCBIndex = objCBIndex++;
-		leftCylRitem->Mat = mMaterials["bricks0"].get();
+		leftCylRitem->Mat = mMaterials["gold"].get();
 		leftCylRitem->Geo = mGeometries["shapeGeo"].get();
 		leftCylRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		leftCylRitem->IndexCount = leftCylRitem->Geo->DrawArgs["cylinder"].IndexCount;
@@ -1282,7 +1282,7 @@ void ShapesApp::BuildRenderItems()
 		XMStoreFloat4x4(&rightCylRitem->World, leftCylWorld);
 		XMStoreFloat4x4(&rightCylRitem->TexTransform, brickTexTransform);
 		rightCylRitem->ObjCBIndex = objCBIndex++;
-		rightCylRitem->Mat = mMaterials["bricks0"].get();
+		rightCylRitem->Mat = mMaterials["gold"].get();
 		rightCylRitem->Geo = mGeometries["shapeGeo"].get();
 		rightCylRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		rightCylRitem->IndexCount = rightCylRitem->Geo->DrawArgs["cylinder"].IndexCount;
