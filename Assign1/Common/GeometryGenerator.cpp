@@ -104,21 +104,12 @@ GeometryGenerator::MeshData GeometryGenerator::CreateBox(float width, float heig
     return meshData;
 }
 
+//Modified from cylinder primitive.
 GeometryGenerator::MeshData GeometryGenerator::CreateDiamond(float bottomRadius, float topRadius, float middleRadius, float height1, float height2, uint32 sliceCount, uint32 stackCount)
 {
-	MeshData meshData;
-
-	// Add the bottom singular point first
-	//meshData.Vertices.push_back(Vertex(0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f));
-
-	//
-	// Build Stacks.
-	// 
-
-	//float stackHeight = height / stackCount;
-
+	MeshData meshData; 
+	
 	// Amount to increment radius as we move up each stack level from bottom to top.
-	//float radiusStep = (topRadius - bottomRadius) / stackCount;
 	float heights[3] = { 0, height1, height2 };
 	float radii[3] = { bottomRadius, middleRadius, topRadius };
 
@@ -128,13 +119,8 @@ GeometryGenerator::MeshData GeometryGenerator::CreateDiamond(float bottomRadius,
 	for (uint32 i = 0; i < ringCount; ++i)
 	{
 		// Set these equal to one of the things we passed in
-		//float height = i == 0 ? height1 : height2;
-		//float r = i == 0 ? middleRadius : topRadius;
 		float r = radii[i % 3];
-
-		//float y = -0.5f*height;
 		float y = heights[i % 3];
-		//float r = bottomRadius + i*radiusStep;
 
 		// vertices of ring
 		float dTheta = 2.0f*XM_PI / sliceCount;
@@ -149,25 +135,6 @@ GeometryGenerator::MeshData GeometryGenerator::CreateDiamond(float bottomRadius,
 
 			vertex.TexC.x = (float)j / sliceCount;
 			vertex.TexC.y = 1.0f - (float)i / stackCount;
-
-			// Cylinder can be parameterized as follows, where we introduce v
-			// parameter that goes in the same direction as the v tex-coord
-			// so that the bitangent goes in the same direction as the v tex-coord.
-			//   Let r0 be the bottom radius and let r1 be the top radius.
-			//   y(v) = h - hv for v in [0,1].
-			//   r(v) = r1 + (r0-r1)v
-			//
-			//   x(t, v) = r(v)*cos(t)
-			//   y(t, v) = h - hv
-			//   z(t, v) = r(v)*sin(t)
-			// 
-			//  dx/dt = -r(v)*sin(t)
-			//  dy/dt = 0
-			//  dz/dt = +r(v)*cos(t)
-			//
-			//  dx/dv = (r0-r1)*cos(t)
-			//  dy/dv = -h
-			//  dz/dv = (r0-r1)*sin(t)
 
 			// This is unit length.
 			vertex.TangentU = XMFLOAT3(-s, 0.0f, c);
@@ -204,7 +171,6 @@ GeometryGenerator::MeshData GeometryGenerator::CreateDiamond(float bottomRadius,
 	}
 
 	BuildDiamondTopCap(middleRadius, topRadius, height2, sliceCount, stackCount, meshData);
-	//BuildCylinderBottomCap(bottomRadius, topRadius, height, sliceCount, stackCount, meshData);
 
 	return meshData;
 }
@@ -523,25 +489,6 @@ GeometryGenerator::MeshData GeometryGenerator::CreateCylinder(float bottomRadius
 			vertex.TexC.x = (float)j/sliceCount;
 			vertex.TexC.y = 1.0f - (float)i/stackCount;
 
-			// Cylinder can be parameterized as follows, where we introduce v
-			// parameter that goes in the same direction as the v tex-coord
-			// so that the bitangent goes in the same direction as the v tex-coord.
-			//   Let r0 be the bottom radius and let r1 be the top radius.
-			//   y(v) = h - hv for v in [0,1].
-			//   r(v) = r1 + (r0-r1)v
-			//
-			//   x(t, v) = r(v)*cos(t)
-			//   y(t, v) = h - hv
-			//   z(t, v) = r(v)*sin(t)
-			// 
-			//  dx/dt = -r(v)*sin(t)
-			//  dy/dt = 0
-			//  dz/dt = +r(v)*cos(t)
-			//
-			//  dx/dv = (r0-r1)*cos(t)
-			//  dy/dv = -h
-			//  dz/dv = (r0-r1)*sin(t)
-
 			// This is unit length.
 			vertex.TangentU = XMFLOAT3(-s, 0.0f, c);
 
@@ -587,7 +534,6 @@ void GeometryGenerator::BuildDiamondTopCap(float bottomRadius, float topRadius, 
 {
 	uint32 baseIndex = (uint32)meshData.Vertices.size();
 
-	//float y = 0.5f*height;
 	float y = height;
 	float dTheta = 2.0f*XM_PI/sliceCount;
 
@@ -625,7 +571,6 @@ void GeometryGenerator::BuildCylinderTopCap(float bottomRadius, float topRadius,
 	uint32 baseIndex = (uint32)meshData.Vertices.size();
 
 	float y = 0.5f*height;
-	//float y = height;
 	float dTheta = 2.0f*XM_PI / sliceCount;
 
 	// Duplicate cap ring vertices because the texture coordinates and normals differ.
@@ -1038,12 +983,6 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePrism(float width, float de
 
 	meshData.Indices32.assign(&i[0], &i[24]);
 
-	// Put a cap on the number of subdivisions.
-	//numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
-	//
-	//for (uint32 i = 0; i < numSubdivisions; ++i)
-	//	Subdivide(meshData);
-
 	return meshData;
 }
 
@@ -1110,12 +1049,6 @@ GeometryGenerator::MeshData GeometryGenerator::CreateWedge(float width, float de
 	i[21] = 17; i[22] = 16; i[23] = 15;
 
 	meshData.Indices32.assign(&i[0], &i[24]);
-
-	// Put a cap on the number of subdivisions.
-	//numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
-	//
-	//for (uint32 i = 0; i < numSubdivisions; ++i)
-	//	Subdivide(meshData);
 
 	return meshData;
 }
