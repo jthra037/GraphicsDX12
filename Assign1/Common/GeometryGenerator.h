@@ -80,6 +80,12 @@ public:
 	///</summary>
     MeshData CreateBox(float width, float height, float depth, uint32 numSubdivisions);
 
+	///<summary>
+	/// Creates a wedge centered at the origin with the given dimensions, where each
+	/// face has m rows and n columns of vertices.
+	///</summary>
+	MeshData CreateWedge(float width, float depth, float height, int numSubdivisions);
+
 	GeometryGenerator::MeshData CreateDiamond(float bottomRadius, float topRadius, float middleRadius, float height1, float height2, uint32 sliceCount, uint32 stackCount);
 
 	///<summary>
@@ -114,6 +120,14 @@ public:
 	/// Creates a quad aligned with the screen.  This is useful for postprocessing and screen effects.
 	///</summary>
     MeshData CreateQuad(float x, float y, float w, float h, float depth);
+
+	MeshData CreateTorus(float a, float c, int outserStep, int innerStep);
+
+	GeometryGenerator::MeshData CreatePyramid(float bottomWidth, float bottomDepth, 
+		float topWidth, float topDepth, 
+		float height, int numSubdivisions);
+
+	GeometryGenerator::MeshData CreatePrism(float width, float depth, float height, int numSubdivisions);
 
 private:
 	void Subdivide(MeshData& meshData);
