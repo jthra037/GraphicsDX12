@@ -711,7 +711,7 @@ void TreeBillboardsApp::BuildShadersAndInputLayouts()
 void TreeBillboardsApp::BuildLandGeometry()
 {
     GeometryGenerator geoGen;
-    GeometryGenerator::MeshData grid = geoGen.CreateGrid(160.0f, 160.0f, 50, 50);
+    GeometryGenerator::MeshData grid = geoGen.CreateGrid(1600.0f, 1600.0f, 50, 50);
 
     //
     // Extract the vertex elements we are interested and apply the height function to
@@ -1224,7 +1224,7 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> TreeBillboardsApp::GetStaticSam
 
 float TreeBillboardsApp::GetHillsHeight(float x, float z)const
 {
-    return 0.3f*(z*sinf(0.1f*x) + x*cosf(0.1f*z));
+	return (40 * (cosf(x / 1600 * 7) + cosf(z / 1600 * 7))) - 70;
 }
 
 XMFLOAT3 TreeBillboardsApp::GetHillsNormal(float x, float z)const
