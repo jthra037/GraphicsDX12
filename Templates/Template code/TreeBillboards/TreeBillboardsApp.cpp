@@ -494,10 +494,47 @@ void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.AmbientLight = { 0.25f, 0.25f, 0.35f, 1.0f };
 	mMainPassCB.Lights[0].Direction = { 0.57735f, -0.57735f, 0.57735f };
 	mMainPassCB.Lights[0].Strength = { 0.6f, 0.6f, 0.6f };
+
+	//Directional Light
 	mMainPassCB.Lights[1].Direction = { -0.57735f, -0.57735f, 0.57735f };
 	mMainPassCB.Lights[1].Strength = { 0.3f, 0.3f, 0.3f };
+
+
+	//Directional Light
 	mMainPassCB.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
-	mMainPassCB.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };
+	mMainPassCB.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };	
+
+
+	//Point light on skull
+	mMainPassCB.Lights[3].Position = { -5.0f, 3.5f, -8.0f };
+	mMainPassCB.Lights[3].FalloffStart = 0.0f;
+	mMainPassCB.Lights[3].Strength = { 4.0f, 0.0f, 0.0f };
+	mMainPassCB.Lights[3].FalloffEnd = 10.f;
+
+	//Point light on the Torus
+	mMainPassCB.Lights[4].Position = { 5.0f, 4.5f, -8.0f };
+	mMainPassCB.Lights[4].FalloffStart = 0.0f;
+	mMainPassCB.Lights[4].Strength = { 0.93f*2.f, 0.99f*2.f, 0.259f*2.f };
+	mMainPassCB.Lights[4].FalloffEnd = 10.f;
+
+	/*
+	//Spot light On Left Tower Cap
+	mMainPassCB.Lights[5].FalloffStart = 0.0f;
+	mMainPassCB.Lights[5].Strength = { 0.3f, 0.3f, 0.3f };
+	mMainPassCB.Lights[5].FalloffEnd = 20.f;
+	mMainPassCB.Lights[5].Direction = { -13.0f, -7.0f, -17.0f };
+	mMainPassCB.Lights[5].SpotPower = 0.8f;
+	mMainPassCB.Lights[5].Position = { -13.f,15.0f, -17.f };
+
+	//Spot light On right Tower Cap
+	mMainPassCB.Lights[6].FalloffStart = 0.0f;
+	mMainPassCB.Lights[6].Strength = { 0.3f, 0.3f, 0.3f };
+	mMainPassCB.Lights[6].FalloffEnd = 20.f;
+	mMainPassCB.Lights[6].Direction = { 13.0f, -7.0f, -17.0f };
+	mMainPassCB.Lights[6].SpotPower = 1.f;
+	mMainPassCB.Lights[6].Position = { 13.f,0.0f, -17.f };*/
+
+	
 
 	auto currPassCB = mCurrFrameResource->PassCB.get();
 	currPassCB->CopyData(0, mMainPassCB);
@@ -573,18 +610,10 @@ void TreeBillboardsApp::LoadTextures()
 		mCommandList.Get(), treeArrayTex->Filename.c_str(),
 		treeArrayTex->Resource, treeArrayTex->UploadHeap));
 
-	auto stoneWallTex = std::make_unique<Texture>();
-	stoneWallTex->Name = "stoneWallTex";
-	stoneWallTex->Filename = L"../../Textures/bricks2.dds";
-	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
-		mCommandList.Get(), stoneWallTex->Filename.c_str(),
-		stoneWallTex->Resource, stoneWallTex->UploadHeap));
-
 	mTextures[grassTex->Name] = std::move(grassTex);
 	mTextures[waterTex->Name] = std::move(waterTex);
 	mTextures[fenceTex->Name] = std::move(fenceTex);
 	mTextures[treeArrayTex->Name] = std::move(treeArrayTex);
-	mTextures[stoneWallTex->Name] = std::move(stoneWallTex);
 }
 
 void TreeBillboardsApp::BuildRootSignature()
@@ -647,7 +676,6 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	auto waterTex = mTextures["waterTex"]->Resource;
 	auto fenceTex = mTextures["fenceTex"]->Resource;
 	auto treeArrayTex = mTextures["treeArrayTex"]->Resource;
-	auto stoneWallTex = mTextures["stoneWallTex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -678,11 +706,6 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	srvDesc.Texture2DArray.FirstArraySlice = 0;
 	srvDesc.Texture2DArray.ArraySize = treeArrayTex->GetDesc().DepthOrArraySize;
 	md3dDevice->CreateShaderResourceView(treeArrayTex.Get(), &srvDesc, hDescriptor);
-
-	// next descriptor
-	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
-	srvDesc.Format = stoneWallTex->GetDesc().Format;
-	md3dDevice->CreateShaderResourceView(stoneWallTex.Get(), &srvDesc, hDescriptor);
 }
 
 void TreeBillboardsApp::BuildShadersAndInputLayouts()
@@ -1341,15 +1364,6 @@ void TreeBillboardsApp::BuildMaterials()
 	treeSprites->DiffuseSrvHeapIndex = 3;
 	treeSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
-	treeSprites->Roughness = 0.125f;
-
-	auto stoneWall = std::make_unique<Material>();
-	treeSprites->Name = "stoneWall";
-	treeSprites->MatCBIndex = 4;
-	treeSprites->DiffuseSrvHeapIndex = 4;
-	treeSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
-	treeSprites->Roughness = 0.13f;
 
 
 /*
@@ -1447,7 +1461,6 @@ void TreeBillboardsApp::BuildMaterials()
 	mMaterials["water"] = std::move(water);
 	mMaterials["wirefence"] = std::move(wirefence);
 	mMaterials["treeSprites"] = std::move(treeSprites);
-	mMaterials["stoneWall"] = std::move(stoneWall);
 }
 
 void TreeBillboardsApp::BuildRenderItems()
@@ -1512,7 +1525,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&keepBox->World, XMMatrixScaling(10.0f, 14.0f, 6.0f)*XMMatrixTranslation(0.0f, 7.0f, 0.0f));
 	XMStoreFloat4x4(&keepBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	keepBox->ObjCBIndex = objCBIndex++;
-	keepBox->Mat = mMaterials["stoneWall"].get();
+	keepBox->Mat = mMaterials["water"].get();
 	keepBox->Geo = mGeometries["shapeGeo"].get();
 	keepBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	keepBox->IndexCount = keepBox->Geo->DrawArgs["box"].IndexCount;
