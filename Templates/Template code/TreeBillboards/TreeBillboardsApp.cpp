@@ -198,7 +198,7 @@ bool TreeBillboardsApp::Initialize()
 	// so we have to query this information.
     mCbvSrvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    mWaves = std::make_unique<Waves>(128, 128, 1.0f, 0.03f, 4.0f, 0.2f);
+    mWaves = std::make_unique<Waves>(128, 128, 20.0f, 0.03f, 4.0f, 0.2f);
  
 	LoadTextures();
     BuildRootSignature();
@@ -1980,9 +1980,9 @@ XMFLOAT3 TreeBillboardsApp::GetHillsNormal(float x, float z)const
 {
     // n = (-df/dx, 1, -df/dz)
     XMFLOAT3 n(
-		40 / (7 * (sinf((7 * x) / 1600))),
-        1.0f,
-		40 / (7 * (sinf((7 * z) / 1600))));
+		(7 / 40) * sinf((7 * x) / 1600), // no idea why this doesn't work
+		1.0f,
+		(7 / 40) * sinf((7 * z) / 1600)); // this should really work
 
     XMVECTOR unitNormal = XMVector3Normalize(XMLoadFloat3(&n));
     XMStoreFloat3(&n, unitNormal);
