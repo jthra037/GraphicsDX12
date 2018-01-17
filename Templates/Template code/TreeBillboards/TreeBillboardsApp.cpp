@@ -201,6 +201,8 @@ bool TreeBillboardsApp::Initialize()
 	// so we have to query this information.
     mCbvSrvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
+	mCamera.SetPosition(0.0f, 22.0f, -60.0f);
+
     mWaves = std::make_unique<Waves>(128, 128, 20.0f, 0.03f, 4.0f, 0.2f);
 
 	LoadTextures();
