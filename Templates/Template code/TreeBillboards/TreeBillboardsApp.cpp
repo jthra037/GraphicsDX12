@@ -3,6 +3,7 @@
 //***************************************************************************************
 
 #include "../../Common/d3dApp.h"
+#include "../../Common/Camera.h"
 #include "../../Common/MathHelper.h"
 #include "../../Common/UploadBuffer.h"
 #include "../../Common/GeometryGenerator.h"
@@ -33,7 +34,7 @@ struct RenderItem
 
 	// Dirty flag indicating the object data has changed and we need to update the constant buffer.
 	// Because we have an object cbuffer for each FrameResource, we have to apply the
-	// update to each FrameResource.  Thus, when we modify obect data we should set 
+	// update to each FrameResource.  Thus, when we modify obect data we should set
 	// NumFramesDirty = gNumFrameResources so that each frame resource gets the update.
 	int NumFramesDirty = gNumFrameResources;
 
@@ -86,7 +87,7 @@ private:
 	void UpdateObjectCBs(const GameTimer& gt);
 	void UpdateMaterialCBs(const GameTimer& gt);
 	void UpdateMainPassCB(const GameTimer& gt);
-	void UpdateWaves(const GameTimer& gt); 
+	void UpdateWaves(const GameTimer& gt);
 
 	void LoadTextures();
     void BuildRootSignature();
@@ -145,9 +146,11 @@ private:
 	XMFLOAT4X4 mView = MathHelper::Identity4x4();
 	XMFLOAT4X4 mProj = MathHelper::Identity4x4();
 
-    float mTheta = 1.5f*XM_PI;
+   /* float mTheta = 1.5f*XM_PI;
     float mPhi = XM_PIDIV2 - 0.1f;
-    float mRadius = 50.0f;
+    float mRadius = 50.0f;*/
+
+	Camera mCamera;
 
     POINT mLastMousePos;
 };
@@ -194,12 +197,12 @@ bool TreeBillboardsApp::Initialize()
     // Reset the command list to prep for initialization commands.
     ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
 
-    // Get the increment size of a descriptor in this heap type.  This is hardware specific, 
+    // Get the increment size of a descriptor in this heap type.  This is hardware specific,
 	// so we have to query this information.
     mCbvSrvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     mWaves = std::make_unique<Waves>(128, 128, 20.0f, 0.03f, 4.0f, 0.2f);
- 
+
 	LoadTextures();
     BuildRootSignature();
 	BuildDescriptorHeaps();
@@ -224,14 +227,16 @@ bool TreeBillboardsApp::Initialize()
 
     return true;
 }
- 
+
 void TreeBillboardsApp::OnResize()
 {
     D3DApp::OnResize();
 
     // The window resized, so update the aspect ratio and recompute the projection matrix.
+	/*
     XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*MathHelper::Pi, AspectRatio(), 1.0f, 1000.0f);
-    XMStoreFloat4x4(&mProj, P);
+    XMStoreFloat4x4(&mProj, P);*/
+	mCamera.SetLens(0.25f*MathHelper::Pi, AspectRatio(), 1.0f, 1000.0f);
 }
 
 void TreeBillboardsApp::Update(const GameTimer& gt)
@@ -323,8 +328,8 @@ void TreeBillboardsApp::Draw(const GameTimer& gt)
     // Advance the fence value to mark commands up to this fence point.
     mCurrFrameResource->Fence = ++mCurrentFence;
 
-    // Add an instruction to the command queue to set a new fence point. 
-    // Because we are on the GPU timeline, the new fence point won't be 
+    // Add an instruction to the command queue to set a new fence point.
+    // Because we are on the GPU timeline, the new fence point won't be
     // set until the GPU finishes processing all the commands prior to this Signal().
     mCommandQueue->Signal(mFence.Get(), mCurrentFence);
 }
@@ -351,13 +356,16 @@ void TreeBillboardsApp::OnMouseMove(WPARAM btnState, int x, int y)
         float dy = XMConvertToRadians(0.25f*static_cast<float>(y - mLastMousePos.y));
 
         // Update angles based on input to orbit camera around box.
-        mTheta += dx;
+       /* mTheta += dx;
         mPhi += dy;
 
         // Restrict the angle mPhi.
-        mPhi = MathHelper::Clamp(mPhi, 0.1f, MathHelper::Pi - 0.1f);
+        mPhi = MathHelper::Clamp(mPhi, 0.1f, MathHelper::Pi - 0.1f);*/
+
+		mCamera.Pitch(dy);
+		mCamera.RotateY(dx);
     }
-    else if((btnState & MK_RBUTTON) != 0)
+   /* else if((btnState & MK_RBUTTON) != 0)
     {
         // Make each pixel correspond to 0.2 unit in the scene.
         float dx = 0.2f*static_cast<float>(x - mLastMousePos.x);
@@ -368,18 +376,48 @@ void TreeBillboardsApp::OnMouseMove(WPARAM btnState, int x, int y)
 
         // Restrict the radius.
         mRadius = MathHelper::Clamp(mRadius, 5.0f, 150.0f);
-    }
+    }*/
 
     mLastMousePos.x = x;
     mLastMousePos.y = y;
 }
- 
+
 void TreeBillboardsApp::OnKeyboardInput(const GameTimer& gt)
 {
+
+	const float dt = gt.DeltaTime();
+
+	if (GetAsyncKeyState('W') & 0x8000)
+		mCamera.Walk(20.0f*dt);
+
+	if (GetAsyncKeyState('S') & 0x8000)
+		mCamera.Walk(-20.0f*dt);
+
+	if (GetAsyncKeyState('A') & 0x8000)
+		mCamera.Strafe(-20.0f*dt);
+
+	if (GetAsyncKeyState('D') & 0x8000)
+		mCamera.Strafe(20.0f*dt);
+
+	if (GetAsyncKeyState('Q') & 0x8000)
+	{
+		float dr = XMConvertToRadians(0.5f*static_cast<float>(80.0f * dt));
+		mCamera.Roll(dr);
+	}
+
+	if (GetAsyncKeyState('E') & 0x8000)
+	{
+		float dr = XMConvertToRadians(0.5f*static_cast<float>(-80.0f * dt));
+		mCamera.Roll(dr);
+	}
+
+	mCamera.UpdateViewMatrix();
+
 }
- 
+
 void TreeBillboardsApp::UpdateCamera(const GameTimer& gt)
 {
+	/*
 	// Convert Spherical to Cartesian coordinates.
 	mEyePos.x = mRadius*sinf(mPhi)*cosf(mTheta);
 	mEyePos.z = mRadius*sinf(mPhi)*sinf(mTheta);
@@ -391,7 +429,7 @@ void TreeBillboardsApp::UpdateCamera(const GameTimer& gt)
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 	XMMATRIX view = XMMatrixLookAtLH(pos, target, up);
-	XMStoreFloat4x4(&mView, view);
+	XMStoreFloat4x4(&mView, view);*/
 }
 
 void TreeBillboardsApp::AnimateMaterials(const GameTimer& gt)
@@ -423,7 +461,7 @@ void TreeBillboardsApp::UpdateObjectCBs(const GameTimer& gt)
 	auto currObjectCB = mCurrFrameResource->ObjectCB.get();
 	for(auto& e : mAllRitems)
 	{
-		// Only update the cbuffer data if the constants have changed.  
+		// Only update the cbuffer data if the constants have changed.
 		// This needs to be tracked per frame resource.
 		if(e->NumFramesDirty > 0)
 		{
@@ -470,8 +508,11 @@ void TreeBillboardsApp::UpdateMaterialCBs(const GameTimer& gt)
 
 void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
 {
-	XMMATRIX view = XMLoadFloat4x4(&mView);
-	XMMATRIX proj = XMLoadFloat4x4(&mProj);
+	/*XMMATRIX view = XMLoadFloat4x4(&mView);
+	XMMATRIX proj = XMLoadFloat4x4(&mProj);*/
+
+	XMMATRIX view = mCamera.GetView();
+	XMMATRIX proj = mCamera.GetProj();
 
 	XMMATRIX viewProj = XMMatrixMultiply(view, proj);
 	XMMATRIX invView = XMMatrixInverse(&XMMatrixDeterminant(view), view);
@@ -484,7 +525,7 @@ void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
 	XMStoreFloat4x4(&mMainPassCB.InvProj, XMMatrixTranspose(invProj));
 	XMStoreFloat4x4(&mMainPassCB.ViewProj, XMMatrixTranspose(viewProj));
 	XMStoreFloat4x4(&mMainPassCB.InvViewProj, XMMatrixTranspose(invViewProj));
-	mMainPassCB.EyePosW = mEyePos;
+	mMainPassCB.EyePosW = mCamera.GetPosition3f();
 	mMainPassCB.RenderTargetSize = XMFLOAT2((float)mClientWidth, (float)mClientHeight);
 	mMainPassCB.InvRenderTargetSize = XMFLOAT2(1.0f / mClientWidth, 1.0f / mClientHeight);
 	mMainPassCB.NearZ = 1.0f;
@@ -502,7 +543,7 @@ void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
 
 	//Directional Light
 	mMainPassCB.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
-	mMainPassCB.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };	
+	mMainPassCB.Lights[2].Strength = { 0.15f, 0.15f, 0.15f };
 
 
 	//Point light on skull
@@ -534,7 +575,7 @@ void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.Lights[6].SpotPower = 1.f;
 	mMainPassCB.Lights[6].Position = { 13.f,0.0f, -17.f };*/
 
-	
+
 
 	auto currPassCB = mCurrFrameResource->PassCB.get();
 	currPassCB->CopyData(0, mMainPassCB);
@@ -567,8 +608,8 @@ void TreeBillboardsApp::UpdateWaves(const GameTimer& gt)
 
 		v.Pos = mWaves->Position(i);
 		v.Normal = mWaves->Normal(i);
-		
-		// Derive tex-coords from position by 
+
+		// Derive tex-coords from position by
 		// mapping [-w/2,w/2] --> [0,1]
 		v.TexC.x = 0.5f + v.Pos.x / mWaves->Width();
 		v.TexC.y = 0.5f - v.Pos.z / mWaves->Depth();
@@ -726,7 +767,7 @@ void TreeBillboardsApp::BuildShadersAndInputLayouts()
 	mShaders["standardVS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", nullptr, "VS", "vs_5_0");
 	mShaders["opaquePS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", defines, "PS", "ps_5_0");
 	mShaders["alphaTestedPS"] = d3dUtil::CompileShader(L"Shaders\\Default.hlsl", alphaTestDefines, "PS", "ps_5_0");
-	
+
 	mShaders["treeSpriteVS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", nullptr, "VS", "vs_5_0");
 	mShaders["treeSpriteGS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", nullptr, "GS", "gs_5_0");
 	mShaders["treeSpritePS"] = d3dUtil::CompileShader(L"Shaders\\TreeSprite.hlsl", alphaTestDefines, "PS", "ps_5_0");
@@ -872,7 +913,7 @@ void TreeBillboardsApp::BuildBoxGeometry()
 	GeometryGenerator::MeshData wedge = geoGen.CreateWedge(1, 1.f, 1.f, 3);
 
 
-	
+
 
 	//
 	// Extract the vertex elements we are interested in and pack the
@@ -1180,7 +1221,7 @@ void TreeBillboardsApp::BuildTreeSpritesGeometry()
 	{
 		/*float x = MathHelper::RandF(MathHelper::RandF(-60.f, -25.0), MathHelper::RandF(25.f, 65.0));
 		float z = MathHelper::RandF(MathHelper::RandF(-60.f, -25.0), MathHelper::RandF(25.f, 65.0));*/
-					
+
 		float y = GetHillsHeight(x, z);
 
 		// Move tree slightly above land height.
@@ -1263,13 +1304,13 @@ void TreeBillboardsApp::BuildPSOs()
     ZeroMemory(&opaquePsoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	opaquePsoDesc.InputLayout = { mStdInputLayout.data(), (UINT)mStdInputLayout.size() };
 	opaquePsoDesc.pRootSignature = mRootSignature.Get();
-	opaquePsoDesc.VS = 
-	{ 
-		reinterpret_cast<BYTE*>(mShaders["standardVS"]->GetBufferPointer()), 
+	opaquePsoDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["standardVS"]->GetBufferPointer()),
 		mShaders["standardVS"]->GetBufferSize()
 	};
-	opaquePsoDesc.PS = 
-	{ 
+	opaquePsoDesc.PS =
+	{
 		reinterpret_cast<BYTE*>(mShaders["opaquePS"]->GetBufferPointer()),
 		mShaders["opaquePS"]->GetBufferSize()
 	};
@@ -1311,8 +1352,8 @@ void TreeBillboardsApp::BuildPSOs()
 	//
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC alphaTestedPsoDesc = opaquePsoDesc;
-	alphaTestedPsoDesc.PS = 
-	{ 
+	alphaTestedPsoDesc.PS =
+	{
 		reinterpret_cast<BYTE*>(mShaders["alphaTestedPS"]->GetBufferPointer()),
 		mShaders["alphaTestedPS"]->GetBufferSize()
 	};
@@ -1559,8 +1600,8 @@ void TreeBillboardsApp::BuildRenderItems()
 	keepBox->StartIndexLocation = keepBox->Geo->DrawArgs["box"].StartIndexLocation;
 	keepBox->BaseVertexLocation = keepBox->Geo->DrawArgs["box"].BaseVertexLocation;
 	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(keepBox.get());
-	
-	
+
+
 
 	//Keep Roof
 	auto keepRoofPyramid = std::make_unique<RenderItem>();
@@ -1576,7 +1617,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(keepRoofPyramid.get());
 	mAllRitems.push_back(std::move(keepRoofPyramid));
 
-	
+
 	//Keep Stairs
 	auto keepStairsWedge = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&keepStairsWedge->World, XMMatrixScaling(5.0f, 2.0f, 3.0f)*XMMatrixRotationRollPitchYaw(0.0f, XM_PI, 0.0f)*XMMatrixTranslation(0.0f, 11.0f, -4.5f));
@@ -1591,7 +1632,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(keepStairsWedge.get());
 	mAllRitems.push_back(std::move(keepStairsWedge));
 
-	
+
 	//Back Wall
 	auto backWallBox = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&backWallBox->World, XMMatrixScaling(28.0f, 6.0f, 1.0f)*XMMatrixTranslation(0.0f, 13.0f, 12.0f));
@@ -1606,7 +1647,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(backWallBox.get());
 	mAllRitems.push_back(std::move(backWallBox));
 
-	
+
 	//Front Right Wall
 	auto RfrontWallBox = std::make_unique<RenderItem>();
 	XMStoreFloat4x4(&RfrontWallBox->World, XMMatrixScaling(9.0f, 6.0f, 1.0f)*XMMatrixTranslation(7.0f, 13.0f, -18.0f));
@@ -1901,7 +1942,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	gridRitem->BaseVertexLocation = gridRitem->Geo->DrawArgs["grid"].BaseVertexLocation;
 	mAllRitems.push_back(std::move(gridRitem));*/
 
-	
+
 
     mAllRitems.push_back(std::move(wavesRitem));
     mAllRitems.push_back(std::move(gridRitem));
@@ -1944,7 +1985,7 @@ void TreeBillboardsApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, cons
 std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> TreeBillboardsApp::GetStaticSamplers()
 {
 	// Applications usually only need a handful of samplers.  So just define them all up front
-	// and keep them available as part of the root signature.  
+	// and keep them available as part of the root signature.
 
 	const CD3DX12_STATIC_SAMPLER_DESC pointWrap(
 		0, // shaderRegister
@@ -1992,9 +2033,9 @@ std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> TreeBillboardsApp::GetStaticSam
 		0.0f,                              // mipLODBias
 		8);                                // maxAnisotropy
 
-	return { 
+	return {
 		pointWrap, pointClamp,
-		linearWrap, linearClamp, 
+		linearWrap, linearClamp,
 		anisotropicWrap, anisotropicClamp };
 }
 
