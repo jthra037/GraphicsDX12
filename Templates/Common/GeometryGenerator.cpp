@@ -841,16 +841,16 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float bottomWidth, 
 	float riseD = diffD / height;
 
 	// Fill in the front face vertex data.
-	v[0] = Vertex(-bw2, -h2, -bd2, 0.0f, riseD, -runD, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	v[1] = Vertex(-tw2, +h2, -td2, 0.0f, riseD, -runD, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	v[2] = Vertex(+tw2, +h2, -td2, 0.0f, riseD, -runD, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	v[3] = Vertex(+bw2, -h2, -bd2, 0.0f, riseD, -runD, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+	v[0] = Vertex(-bw2, -h2, -bd2, 0.0f, riseD, -runD, 0.0f, -runD, -riseD, 0.0f, 1.0f);
+	v[1] = Vertex(-tw2, +h2, -td2, 0.0f, riseD, -runD, 0.0f, -runD, -riseD, 0.0f, 0.0f);
+	v[2] = Vertex(+tw2, +h2, -td2, 0.0f, riseD, -runD, 0.0f, -runD, -riseD, 1.0f, 0.0f);
+	v[3] = Vertex(+bw2, -h2, -bd2, 0.0f, riseD, -runD, 0.0f, -runD, -riseD, 1.0f, 1.0f);
 
 	// Fill in the back face vertex data.
-	v[4] = Vertex(-bw2, -h2, +bd2, 0.0f, riseD, runD, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
-	v[5] = Vertex(+bw2, -h2, +bd2, 0.0f, riseD, runD, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-	v[6] = Vertex(+tw2, +h2, +td2, 0.0f, riseD, runD, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-	v[7] = Vertex(-tw2, +h2, +td2, 0.0f, riseD, runD, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	v[4] = Vertex(-bw2, -h2, +bd2, 0.0f, riseD, runD, 0.0f, -runD, riseD, 1.0f, 1.0f);
+	v[5] = Vertex(+bw2, -h2, +bd2, 0.0f, riseD, runD, 0.0f, -runD, riseD, 0.0f, 1.0f);
+	v[6] = Vertex(+tw2, +h2, +td2, 0.0f, riseD, runD, 0.0f, -runD, riseD, 0.0f, 0.0f);
+	v[7] = Vertex(-tw2, +h2, +td2, 0.0f, riseD, runD, 0.0f, -runD, riseD, 1.0f, 0.0f);
 
 	// Fill in the top face vertex data.
 	v[8] = Vertex(-tw2, +h2, -td2, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -865,16 +865,16 @@ GeometryGenerator::MeshData GeometryGenerator::CreatePyramid(float bottomWidth, 
 	v[15] = Vertex(-bw2, -h2, +bd2, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
 	// Fill in the left face vertex data.
-	v[16] = Vertex(-bw2, -h2, +bd2, -runW, riseW, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
-	v[17] = Vertex(-tw2, +h2, +td2, -runW, riseW, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
-	v[18] = Vertex(-tw2, +h2, -td2, -runW, riseW, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
-	v[19] = Vertex(-bw2, -h2, -bd2, -runW, riseW, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
+	v[16] = Vertex(-bw2, -h2, +bd2, -runW, riseW, 0.0f, -riseW, -runW, 0.0f, 0.0f, 1.0f);
+	v[17] = Vertex(-tw2, +h2, +td2, -runW, riseW, 0.0f, -riseW, -runW, 0.0f, 0.0f, 0.0f);
+	v[18] = Vertex(-tw2, +h2, -td2, -runW, riseW, 0.0f, -riseW, -runW, 0.0f, 1.0f, 0.0f);
+	v[19] = Vertex(-bw2, -h2, -bd2, -runW, riseW, 0.0f, -riseW, -runW, 0.0f, 1.0f, 1.0f);
 
 	// Fill in the right face vertex data.
-	v[20] = Vertex(+bw2, -h2, -bd2, runW, riseW, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-	v[21] = Vertex(+tw2, +h2, -td2, runW, riseW, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-	v[22] = Vertex(+tw2, +h2, +td2, runW, riseW, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
-	v[23] = Vertex(+bw2, -h2, +bd2, runW, riseW, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+	v[20] = Vertex(+bw2, -h2, -bd2, runW, riseW, 0.0f, -riseW, runW, 0.0f, 0.0f, 1.0f);
+	v[21] = Vertex(+tw2, +h2, -td2, runW, riseW, 0.0f, -riseW, runW, 0.0f, 0.0f, 0.0f);
+	v[22] = Vertex(+tw2, +h2, +td2, runW, riseW, 0.0f, -riseW, runW, 0.0f, 1.0f, 0.0f);
+	v[23] = Vertex(+bw2, -h2, +bd2, runW, riseW, 0.0f, -riseW, runW, 0.0f, 1.0f, 1.0f);
 
 	meshData.Vertices.assign(&v[0], &v[24]);
 

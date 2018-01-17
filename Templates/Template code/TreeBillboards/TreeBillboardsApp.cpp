@@ -573,10 +573,18 @@ void TreeBillboardsApp::LoadTextures()
 		mCommandList.Get(), treeArrayTex->Filename.c_str(),
 		treeArrayTex->Resource, treeArrayTex->UploadHeap));
 
+	auto stoneWallTex = std::make_unique<Texture>();
+	stoneWallTex->Name = "stoneWallTex";
+	stoneWallTex->Filename = L"../../Textures/bricks2.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), stoneWallTex->Filename.c_str(),
+		stoneWallTex->Resource, stoneWallTex->UploadHeap));
+
 	mTextures[grassTex->Name] = std::move(grassTex);
 	mTextures[waterTex->Name] = std::move(waterTex);
 	mTextures[fenceTex->Name] = std::move(fenceTex);
 	mTextures[treeArrayTex->Name] = std::move(treeArrayTex);
+	mTextures[stoneWallTex->Name] = std::move(stoneWallTex);
 }
 
 void TreeBillboardsApp::BuildRootSignature()
@@ -625,7 +633,7 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 4;
+	srvHeapDesc.NumDescriptors = 5;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -639,6 +647,7 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	auto waterTex = mTextures["waterTex"]->Resource;
 	auto fenceTex = mTextures["fenceTex"]->Resource;
 	auto treeArrayTex = mTextures["treeArrayTex"]->Resource;
+	auto stoneWallTex = mTextures["stoneWallTex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -650,13 +659,11 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 
 	// next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
-
 	srvDesc.Format = waterTex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(waterTex.Get(), &srvDesc, hDescriptor);
 
 	// next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
-
 	srvDesc.Format = fenceTex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(fenceTex.Get(), &srvDesc, hDescriptor);
 
@@ -671,6 +678,11 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	srvDesc.Texture2DArray.FirstArraySlice = 0;
 	srvDesc.Texture2DArray.ArraySize = treeArrayTex->GetDesc().DepthOrArraySize;
 	md3dDevice->CreateShaderResourceView(treeArrayTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+	srvDesc.Format = stoneWallTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(stoneWallTex.Get(), &srvDesc, hDescriptor);
 }
 
 void TreeBillboardsApp::BuildShadersAndInputLayouts()
@@ -836,78 +848,8 @@ void TreeBillboardsApp::BuildBoxGeometry()
 	GeometryGenerator::MeshData prism = geoGen.CreatePrism(1, 1.f, 1.f, 3);
 	GeometryGenerator::MeshData wedge = geoGen.CreateWedge(1, 1.f, 1.f, 3);
 
-	//
-	// We are concatenating all the geometry into one big vertex/index buffer.  So
-	// define the regions in the buffer each submesh covers.
-	//
 
-	// Cache the vertex offsets to each object in the concatenated vertex buffer.
-	UINT boxVertexOffset = 0;
-	UINT gridVertexOffset = (UINT)box.Vertices.size();
-	UINT sphereVertexOffset = gridVertexOffset + (UINT)grid.Vertices.size();
-	UINT cylinderVertexOffset = sphereVertexOffset + (UINT)sphere.Vertices.size();
-	UINT diamondVertexOffset = cylinderVertexOffset + (UINT)cylinder.Vertices.size();
-	UINT torusVertexOffset = diamondVertexOffset + (UINT)diamond.Vertices.size();
-	UINT pyramidVertexOffset = torusVertexOffset + (UINT)torus.Vertices.size();
-	UINT prismVertexOffset = pyramidVertexOffset + (UINT)pyramid.Vertices.size();
-	UINT wedgeVertexOffset = prismVertexOffset + (UINT)prism.Vertices.size();
-
-
-	// Cache the starting index for each object in the concatenated index buffer.
-	UINT boxIndexOffset = 0;
-	UINT gridIndexOffset = (UINT)box.Indices32.size();
-	UINT sphereIndexOffset = gridIndexOffset + (UINT)grid.Indices32.size();
-	UINT cylinderIndexOffset = sphereIndexOffset + (UINT)sphere.Indices32.size();
-	UINT diamondIndexOffset = cylinderIndexOffset + (UINT)cylinder.Indices32.size();
-	UINT torusIndexOffset = diamondIndexOffset + (UINT)diamond.Indices32.size();
-	UINT pyramidIndexOffset = torusIndexOffset + (UINT)torus.Indices32.size();
-	UINT prismIndexOffset = pyramidIndexOffset + (UINT)pyramid.Indices32.size();
-	UINT wedgeIndexOffset = prismIndexOffset + (UINT)prism.Indices32.size();
-
-	SubmeshGeometry boxSubmesh;
-	boxSubmesh.IndexCount = (UINT)box.Indices32.size();
-	boxSubmesh.StartIndexLocation = boxIndexOffset;
-	boxSubmesh.BaseVertexLocation = boxVertexOffset;
-
-	SubmeshGeometry gridSubmesh;
-	gridSubmesh.IndexCount = (UINT)grid.Indices32.size();
-	gridSubmesh.StartIndexLocation = gridIndexOffset;
-	gridSubmesh.BaseVertexLocation = gridVertexOffset;
-
-	SubmeshGeometry sphereSubmesh;
-	sphereSubmesh.IndexCount = (UINT)sphere.Indices32.size();
-	sphereSubmesh.StartIndexLocation = sphereIndexOffset;
-	sphereSubmesh.BaseVertexLocation = sphereVertexOffset;
-
-	SubmeshGeometry cylinderSubmesh;
-	cylinderSubmesh.IndexCount = (UINT)cylinder.Indices32.size();
-	cylinderSubmesh.StartIndexLocation = cylinderIndexOffset;
-	cylinderSubmesh.BaseVertexLocation = cylinderVertexOffset;
-
-	SubmeshGeometry diamondSubmesh;
-	diamondSubmesh.IndexCount = (UINT)diamond.Indices32.size();
-	diamondSubmesh.StartIndexLocation = diamondIndexOffset;
-	diamondSubmesh.BaseVertexLocation = diamondVertexOffset;
-
-	SubmeshGeometry torusSubmesh;
-	torusSubmesh.IndexCount = (UINT)torus.Indices32.size();
-	torusSubmesh.StartIndexLocation = torusIndexOffset;
-	torusSubmesh.BaseVertexLocation = torusVertexOffset;
-
-	SubmeshGeometry pyramidSubmesh;
-	pyramidSubmesh.IndexCount = (UINT)pyramid.Indices32.size();
-	pyramidSubmesh.StartIndexLocation = pyramidIndexOffset;
-	pyramidSubmesh.BaseVertexLocation = pyramidVertexOffset;
-
-	SubmeshGeometry prismSubmesh;
-	prismSubmesh.IndexCount = (UINT)prism.Indices32.size();
-	prismSubmesh.StartIndexLocation = prismIndexOffset;
-	prismSubmesh.BaseVertexLocation = prismVertexOffset;
-
-	SubmeshGeometry wedgeSubmesh;
-	wedgeSubmesh.IndexCount = (UINT)wedge.Indices32.size();
-	wedgeSubmesh.StartIndexLocation = wedgeIndexOffset;
-	wedgeSubmesh.BaseVertexLocation = wedgeVertexOffset;
+	
 
 	//
 	// Extract the vertex elements we are interested in and pack the
@@ -1034,6 +976,80 @@ void TreeBillboardsApp::BuildBoxGeometry()
 	geo->VertexBufferByteSize = vbByteSize;
 	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
 	geo->IndexBufferByteSize = ibByteSize;
+
+
+	//
+	// We are concatenating all the geometry into one big vertex/index buffer.  So
+	// define the regions in the buffer each submesh covers.
+	//
+
+	// Cache the vertex offsets to each object in the concatenated vertex buffer.
+	UINT boxVertexOffset = 0;
+	UINT gridVertexOffset = (UINT)box.Vertices.size();
+	UINT sphereVertexOffset = gridVertexOffset + (UINT)grid.Vertices.size();
+	UINT cylinderVertexOffset = sphereVertexOffset + (UINT)sphere.Vertices.size();
+	UINT diamondVertexOffset = cylinderVertexOffset + (UINT)cylinder.Vertices.size();
+	UINT torusVertexOffset = diamondVertexOffset + (UINT)diamond.Vertices.size();
+	UINT pyramidVertexOffset = torusVertexOffset + (UINT)torus.Vertices.size();
+	UINT prismVertexOffset = pyramidVertexOffset + (UINT)pyramid.Vertices.size();
+	UINT wedgeVertexOffset = prismVertexOffset + (UINT)prism.Vertices.size();
+
+
+	// Cache the starting index for each object in the concatenated index buffer.
+	UINT boxIndexOffset = 0;
+	UINT gridIndexOffset = (UINT)box.Indices32.size();
+	UINT sphereIndexOffset = gridIndexOffset + (UINT)grid.Indices32.size();
+	UINT cylinderIndexOffset = sphereIndexOffset + (UINT)sphere.Indices32.size();
+	UINT diamondIndexOffset = cylinderIndexOffset + (UINT)cylinder.Indices32.size();
+	UINT torusIndexOffset = diamondIndexOffset + (UINT)diamond.Indices32.size();
+	UINT pyramidIndexOffset = torusIndexOffset + (UINT)torus.Indices32.size();
+	UINT prismIndexOffset = pyramidIndexOffset + (UINT)pyramid.Indices32.size();
+	UINT wedgeIndexOffset = prismIndexOffset + (UINT)prism.Indices32.size();
+
+	SubmeshGeometry boxSubmesh;
+	boxSubmesh.IndexCount = (UINT)box.Indices32.size();
+	boxSubmesh.StartIndexLocation = boxIndexOffset;
+	boxSubmesh.BaseVertexLocation = boxVertexOffset;
+
+	SubmeshGeometry gridSubmesh;
+	gridSubmesh.IndexCount = (UINT)grid.Indices32.size();
+	gridSubmesh.StartIndexLocation = gridIndexOffset;
+	gridSubmesh.BaseVertexLocation = gridVertexOffset;
+
+	SubmeshGeometry sphereSubmesh;
+	sphereSubmesh.IndexCount = (UINT)sphere.Indices32.size();
+	sphereSubmesh.StartIndexLocation = sphereIndexOffset;
+	sphereSubmesh.BaseVertexLocation = sphereVertexOffset;
+
+	SubmeshGeometry cylinderSubmesh;
+	cylinderSubmesh.IndexCount = (UINT)cylinder.Indices32.size();
+	cylinderSubmesh.StartIndexLocation = cylinderIndexOffset;
+	cylinderSubmesh.BaseVertexLocation = cylinderVertexOffset;
+
+	SubmeshGeometry diamondSubmesh;
+	diamondSubmesh.IndexCount = (UINT)diamond.Indices32.size();
+	diamondSubmesh.StartIndexLocation = diamondIndexOffset;
+	diamondSubmesh.BaseVertexLocation = diamondVertexOffset;
+
+	SubmeshGeometry torusSubmesh;
+	torusSubmesh.IndexCount = (UINT)torus.Indices32.size();
+	torusSubmesh.StartIndexLocation = torusIndexOffset;
+	torusSubmesh.BaseVertexLocation = torusVertexOffset;
+
+	SubmeshGeometry pyramidSubmesh;
+	pyramidSubmesh.IndexCount = (UINT)pyramid.Indices32.size();
+	pyramidSubmesh.StartIndexLocation = pyramidIndexOffset;
+	pyramidSubmesh.BaseVertexLocation = pyramidVertexOffset;
+
+	SubmeshGeometry prismSubmesh;
+	prismSubmesh.IndexCount = (UINT)prism.Indices32.size();
+	prismSubmesh.StartIndexLocation = prismIndexOffset;
+	prismSubmesh.BaseVertexLocation = prismVertexOffset;
+
+	SubmeshGeometry wedgeSubmesh;
+	wedgeSubmesh.IndexCount = (UINT)wedge.Indices32.size();
+	wedgeSubmesh.StartIndexLocation = wedgeIndexOffset;
+	wedgeSubmesh.BaseVertexLocation = wedgeVertexOffset;
 
 	geo->DrawArgs["box"] = boxSubmesh;
 	geo->DrawArgs["grid"] = gridSubmesh;
@@ -1327,6 +1343,14 @@ void TreeBillboardsApp::BuildMaterials()
 	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
 	treeSprites->Roughness = 0.125f;
 
+	auto stoneWall = std::make_unique<Material>();
+	treeSprites->Name = "stoneWall";
+	treeSprites->MatCBIndex = 4;
+	treeSprites->DiffuseSrvHeapIndex = 4;
+	treeSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
+	treeSprites->Roughness = 0.13f;
+
 
 /*
 	auto gold = std::make_unique<Material>();
@@ -1423,6 +1447,7 @@ void TreeBillboardsApp::BuildMaterials()
 	mMaterials["water"] = std::move(water);
 	mMaterials["wirefence"] = std::move(wirefence);
 	mMaterials["treeSprites"] = std::move(treeSprites);
+	mMaterials["stoneWall"] = std::move(stoneWall);
 }
 
 void TreeBillboardsApp::BuildRenderItems()
@@ -1487,14 +1512,14 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&keepBox->World, XMMatrixScaling(10.0f, 14.0f, 6.0f)*XMMatrixTranslation(0.0f, 7.0f, 0.0f));
 	XMStoreFloat4x4(&keepBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	keepBox->ObjCBIndex = objCBIndex++;
-	keepBox->Mat = mMaterials["water"].get();
+	keepBox->Mat = mMaterials["stoneWall"].get();
 	keepBox->Geo = mGeometries["shapeGeo"].get();
 	keepBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	keepBox->IndexCount = keepBox->Geo->DrawArgs["box"].IndexCount;
 	keepBox->StartIndexLocation = keepBox->Geo->DrawArgs["box"].StartIndexLocation;
 	keepBox->BaseVertexLocation = keepBox->Geo->DrawArgs["box"].BaseVertexLocation;
 	mRitemLayer[(int)RenderLayer::AlphaTested].push_back(keepBox.get());
-	mAllRitems.push_back(std::move(keepBox));
+	
 	
 
 	//Keep Roof
@@ -1842,6 +1867,7 @@ void TreeBillboardsApp::BuildRenderItems()
     mAllRitems.push_back(std::move(gridRitem));
 	mAllRitems.push_back(std::move(boxRitem));
 	mAllRitems.push_back(std::move(treeSpritesRitem));
+	mAllRitems.push_back(std::move(keepBox));
 }
 
 void TreeBillboardsApp::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems)
