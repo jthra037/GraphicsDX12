@@ -1231,9 +1231,9 @@ XMFLOAT3 TreeBillboardsApp::GetHillsNormal(float x, float z)const
 {
     // n = (-df/dx, 1, -df/dz)
     XMFLOAT3 n(
-		40 / (7 * (sinf((7 * x) / 1600))),
-        1.0f,
-		40 / (7 * (sinf((7 * z) / 1600))));
+		(7 / 40) * sinf((7 * x) / 1600), // no idea why this doesn't work
+		1.0f,
+		(7 / 40) * sinf((7 * z) / 1600)); // this should really work
 
     XMVECTOR unitNormal = XMVector3Normalize(XMLoadFloat3(&n));
     XMStoreFloat3(&n, unitNormal);
