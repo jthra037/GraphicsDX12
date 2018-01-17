@@ -506,13 +506,13 @@ void TreeBillboardsApp::UpdateMainPassCB(const GameTimer& gt)
 
 
 	//Point light on skull
-	mMainPassCB.Lights[3].Position = { -5.0f, 3.5f, -8.0f };
+	mMainPassCB.Lights[3].Position = { -5.0f, 13.5f, -8.0f };
 	mMainPassCB.Lights[3].FalloffStart = 0.0f;
 	mMainPassCB.Lights[3].Strength = { 4.0f, 0.0f, 0.0f };
 	mMainPassCB.Lights[3].FalloffEnd = 10.f;
 
 	//Point light on the Torus
-	mMainPassCB.Lights[4].Position = { 5.0f, 4.5f, -8.0f };
+	mMainPassCB.Lights[4].Position = { 5.0f, 14.5f, -8.0f };
 	mMainPassCB.Lights[4].FalloffStart = 0.0f;
 	mMainPassCB.Lights[4].Strength = { 0.93f*2.f, 0.99f*2.f, 0.259f*2.f };
 	mMainPassCB.Lights[4].FalloffEnd = 10.f;
@@ -1172,25 +1172,52 @@ void TreeBillboardsApp::BuildTreeSpritesGeometry()
 		XMFLOAT2 Size;
 	};
 
-	static const int treeCount = 16;
-	std::array<TreeSpriteVertex, 16> vertices;
+	static const int treeCount = 20;
+	std::array<TreeSpriteVertex, 40> vertices;
+	float x = 25.0f;
+	float z = 25.0f;
 	for(UINT i = 0; i < treeCount; ++i)
 	{
-		float x = MathHelper::RandF(-45.0f, 45.0f);
-		float z = MathHelper::RandF(-45.0f, 45.0f);
+		/*float x = MathHelper::RandF(MathHelper::RandF(-60.f, -25.0), MathHelper::RandF(25.f, 65.0));
+		float z = MathHelper::RandF(MathHelper::RandF(-60.f, -25.0), MathHelper::RandF(25.f, 65.0));*/
+					
 		float y = GetHillsHeight(x, z);
 
 		// Move tree slightly above land height.
-		y += 8.0f;
+		y += 4.0f;
 
 		vertices[i].Pos = XMFLOAT3(x, y, z);
-		vertices[i].Size = XMFLOAT2(20.0f, 20.0f);
+		vertices[i].Size = XMFLOAT2(10.0f, 10.0f);
+		vertices[i+1].Pos = XMFLOAT3(x, y, -z);
+		vertices[i+1].Size = XMFLOAT2(10.0f, 10.0f);
+		i ++;
+		x -= 5.0f;
+	}
+	x = 25.f;
+	for (UINT j = 20; j < treeCount*2; ++j)
+	{
+		/*float x = MathHelper::RandF(MathHelper::RandF(-60.f, -25.0), MathHelper::RandF(25.f, 65.0));
+		float z = MathHelper::RandF(MathHelper::RandF(-60.f, -25.0), MathHelper::RandF(25.f, 65.0));*/
+
+		float y = GetHillsHeight(x, z);
+
+		// Move tree slightly above land height.
+		y += 4.0f;
+
+		vertices[j].Pos = XMFLOAT3(x, y, z);
+		vertices[j].Size = XMFLOAT2(10.0f, 10.0f);
+
+		vertices[j + 1].Pos = XMFLOAT3(-x, y, z);
+		vertices[j + 1].Size = XMFLOAT2(10.0f, 10.0f);
+		j++;
+		z -= 5.0f;
 	}
 
-	std::array<std::uint16_t, 16> indices =
+	std::array<std::uint16_t, 40> indices =
 	{
 		0, 1, 2, 3, 4, 5, 6, 7,
-		8, 9, 10, 11, 12, 13, 14, 15
+		8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+		20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39
 	};
 
 	const UINT vbByteSize = (UINT)vertices.size() * sizeof(TreeSpriteVertex);
@@ -1522,7 +1549,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Keep
 	auto keepBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&keepBox->World, XMMatrixScaling(10.0f, 14.0f, 6.0f)*XMMatrixTranslation(0.0f, 7.0f, 0.0f));
+	XMStoreFloat4x4(&keepBox->World, XMMatrixScaling(10.0f, 14.0f, 6.0f)*XMMatrixTranslation(0.0f, 17.0f, 0.0f));
 	XMStoreFloat4x4(&keepBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	keepBox->ObjCBIndex = objCBIndex++;
 	keepBox->Mat = mMaterials["water"].get();
@@ -1537,7 +1564,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Keep Roof
 	auto keepRoofPyramid = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&keepRoofPyramid->World, XMMatrixScaling(12.0f, 4.0f, 8.0f)*XMMatrixTranslation(0.0f, 16.0f, 0.0f));
+	XMStoreFloat4x4(&keepRoofPyramid->World, XMMatrixScaling(12.0f, 4.0f, 8.0f)*XMMatrixTranslation(0.0f, 26.0f, 0.0f));
 	XMStoreFloat4x4(&keepRoofPyramid->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	keepRoofPyramid->ObjCBIndex = objCBIndex++;
 	keepRoofPyramid->Mat = mMaterials["water"].get();
@@ -1552,7 +1579,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	
 	//Keep Stairs
 	auto keepStairsWedge = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&keepStairsWedge->World, XMMatrixScaling(5.0f, 2.0f, 3.0f)*XMMatrixRotationRollPitchYaw(0.0f, XM_PI, 0.0f)*XMMatrixTranslation(0.0f, 1.0f, -4.5f));
+	XMStoreFloat4x4(&keepStairsWedge->World, XMMatrixScaling(5.0f, 2.0f, 3.0f)*XMMatrixRotationRollPitchYaw(0.0f, XM_PI, 0.0f)*XMMatrixTranslation(0.0f, 11.0f, -4.5f));
 	XMStoreFloat4x4(&keepStairsWedge->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	keepStairsWedge->ObjCBIndex = objCBIndex++;
 	keepStairsWedge->Mat = mMaterials["water"].get();
@@ -1567,7 +1594,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	
 	//Back Wall
 	auto backWallBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&backWallBox->World, XMMatrixScaling(28.0f, 6.0f, 1.0f)*XMMatrixTranslation(0.0f, 3.0f, 12.0f));
+	XMStoreFloat4x4(&backWallBox->World, XMMatrixScaling(28.0f, 6.0f, 1.0f)*XMMatrixTranslation(0.0f, 13.0f, 12.0f));
 	XMStoreFloat4x4(&backWallBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	backWallBox->ObjCBIndex = objCBIndex++;
 	backWallBox->Mat = mMaterials["water"].get();
@@ -1582,7 +1609,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	
 	//Front Right Wall
 	auto RfrontWallBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&RfrontWallBox->World, XMMatrixScaling(9.0f, 6.0f, 1.0f)*XMMatrixTranslation(7.0f, 3.0f, -18.0f));
+	XMStoreFloat4x4(&RfrontWallBox->World, XMMatrixScaling(9.0f, 6.0f, 1.0f)*XMMatrixTranslation(7.0f, 13.0f, -18.0f));
 	XMStoreFloat4x4(&RfrontWallBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RfrontWallBox->ObjCBIndex = objCBIndex++;
 	RfrontWallBox->Mat = mMaterials["water"].get();
@@ -1596,7 +1623,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Front Left Wall
 	auto LfrontWallBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&LfrontWallBox->World, XMMatrixScaling(9.0f, 6.0f, 1.0f)*XMMatrixTranslation(-7.0f, 3.0f, -18.0f));
+	XMStoreFloat4x4(&LfrontWallBox->World, XMMatrixScaling(9.0f, 6.0f, 1.0f)*XMMatrixTranslation(-7.0f, 13.0f, -18.0f));
 	XMStoreFloat4x4(&LfrontWallBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	LfrontWallBox->ObjCBIndex = objCBIndex++;
 	LfrontWallBox->Mat = mMaterials["water"].get();
@@ -1610,7 +1637,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Left Wall
 	auto leftWallBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&leftWallBox->World, XMMatrixScaling(1.0f, 6.0f, 28.0f)*XMMatrixTranslation(-14.0f, 3.0f, -3.0f));
+	XMStoreFloat4x4(&leftWallBox->World, XMMatrixScaling(1.0f, 6.0f, 28.0f)*XMMatrixTranslation(-14.0f, 13.0f, -3.0f));
 	XMStoreFloat4x4(&leftWallBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	leftWallBox->ObjCBIndex = objCBIndex++;
 	leftWallBox->Mat = mMaterials["water"].get();
@@ -1624,7 +1651,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Right Wall
 	auto rightWallBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&rightWallBox->World, XMMatrixScaling(1.0f, 6.0f, 28.0f)*XMMatrixTranslation(14.0f, 3.0f, -3.0f));
+	XMStoreFloat4x4(&rightWallBox->World, XMMatrixScaling(1.0f, 6.0f, 28.0f)*XMMatrixTranslation(14.0f, 13.0f, -3.0f));
 	XMStoreFloat4x4(&rightWallBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	rightWallBox->ObjCBIndex = objCBIndex++;
 	rightWallBox->Mat = mMaterials["water"].get();
@@ -1638,7 +1665,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Rear Left Tower
 	auto RLTowerBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&RLTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(-13.0f, 4.0f, 11.0f));
+	XMStoreFloat4x4(&RLTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(-13.0f, 14.0f, 11.0f));
 	XMStoreFloat4x4(&RLTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RLTowerBox->ObjCBIndex = objCBIndex++;
 	RLTowerBox->Mat = mMaterials["water"].get();
@@ -1652,7 +1679,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Rear Right Tower
 	auto RRTowerBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&RRTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(13.0f, 4.0f, 11.0f));
+	XMStoreFloat4x4(&RRTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(13.0f, 14.0f, 11.0f));
 	XMStoreFloat4x4(&RRTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RRTowerBox->ObjCBIndex = objCBIndex++;
 	RRTowerBox->Mat = mMaterials["water"].get();
@@ -1666,7 +1693,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Front Left Tower
 	auto FLTowerBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&FLTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(-13.0f, 4.0f, -17.0f));
+	XMStoreFloat4x4(&FLTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(-13.0f, 14.0f, -17.0f));
 	XMStoreFloat4x4(&FLTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FLTowerBox->ObjCBIndex = objCBIndex++;
 	FLTowerBox->Mat = mMaterials["water"].get();
@@ -1680,7 +1707,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Front Right Tower
 	auto FRTowerBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&FRTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(13.0f, 4.0f, -17.0f));
+	XMStoreFloat4x4(&FRTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(13.0f, 14.0f, -17.0f));
 	XMStoreFloat4x4(&FRTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FRTowerBox->ObjCBIndex = objCBIndex++;
 	FRTowerBox->Mat = mMaterials["water"].get();
@@ -1694,7 +1721,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Rear Left Tower Cap
 	auto RLTowerCap = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&RLTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(-13.0f, 10.0f, 11.0f));
+	XMStoreFloat4x4(&RLTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(-13.0f, 20.0f, 11.0f));
 	XMStoreFloat4x4(&RLTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RLTowerCap->ObjCBIndex = objCBIndex++;
 	RLTowerCap->Mat = mMaterials["water"].get();
@@ -1708,7 +1735,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Rear Right Tower Cap
 	auto RRTowerCap = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&RRTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(13.0f, 10.0f, 11.0f));
+	XMStoreFloat4x4(&RRTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(13.0f, 20.0f, 11.0f));
 	XMStoreFloat4x4(&RRTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RRTowerCap->ObjCBIndex = objCBIndex++;
 	RRTowerCap->Mat = mMaterials["water"].get();
@@ -1722,7 +1749,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Front Left Tower Cap
 	auto FLTowerCap = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&FLTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(-13.0f, 10.0f, -17.0f));
+	XMStoreFloat4x4(&FLTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(-13.0f, 20.0f, -17.0f));
 	XMStoreFloat4x4(&FLTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FLTowerCap->ObjCBIndex = objCBIndex++;
 	FLTowerCap->Mat = mMaterials["water"].get();
@@ -1736,7 +1763,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Front Right Tower Cap
 	auto FRTowerCap = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&FRTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(13.0f, 10.0f, -17.0f));
+	XMStoreFloat4x4(&FRTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(13.0f, 20.0f, -17.0f));
 	XMStoreFloat4x4(&FRTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FRTowerCap->ObjCBIndex = objCBIndex++;
 	FRTowerCap->Mat = mMaterials["water"].get();
@@ -1750,7 +1777,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Left Gate
 	auto leftGateBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&leftGateBox->World, XMMatrixScaling(4.0f, 8.0f, 3.0f)*XMMatrixTranslation(-4.0f, 4.0f, -18.0f));
+	XMStoreFloat4x4(&leftGateBox->World, XMMatrixScaling(4.0f, 8.0f, 3.0f)*XMMatrixTranslation(-4.0f, 14.0f, -18.0f));
 	XMStoreFloat4x4(&leftGateBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	leftGateBox->ObjCBIndex = objCBIndex++;
 	leftGateBox->Mat = mMaterials["water"].get();
@@ -1764,7 +1791,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Right Gate
 	auto rightGateBox = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&rightGateBox->World, XMMatrixScaling(4.0f, 8.0f, 3.0f)*XMMatrixTranslation(4.0f, 4.0f, -18.0f));
+	XMStoreFloat4x4(&rightGateBox->World, XMMatrixScaling(4.0f, 8.0f, 3.0f)*XMMatrixTranslation(4.0f, 14.0f, -18.0f));
 	XMStoreFloat4x4(&rightGateBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	rightGateBox->ObjCBIndex = objCBIndex++;
 	rightGateBox->Mat = mMaterials["water"].get();
@@ -1778,7 +1805,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Left Gate Roof
 	auto leftGateWedge = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&leftGateWedge->World, XMMatrixScaling(3.0f, 3.0f, 6.0f)*XMMatrixRotationRollPitchYaw(0.0f, -XM_PI / 2, 0.0f)*XMMatrixTranslation(-3.0f, 9.5f, -18.0f));
+	XMStoreFloat4x4(&leftGateWedge->World, XMMatrixScaling(3.0f, 3.0f, 6.0f)*XMMatrixRotationRollPitchYaw(0.0f, -XM_PI / 2, 0.0f)*XMMatrixTranslation(-3.0f, 19.5f, -18.0f));
 	XMStoreFloat4x4(&leftGateWedge->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	leftGateWedge->ObjCBIndex = objCBIndex++;
 	leftGateWedge->Mat = mMaterials["water"].get();
@@ -1792,7 +1819,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Right Gate Roof
 	auto rightGateWedge = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&rightGateWedge->World, XMMatrixScaling(3.0f, 3.0f, 6.0f)*XMMatrixRotationRollPitchYaw(0.0f, XM_PI / 2, 0.0f)*XMMatrixTranslation(3.0f, 9.5f, -18.0f));
+	XMStoreFloat4x4(&rightGateWedge->World, XMMatrixScaling(3.0f, 3.0f, 6.0f)*XMMatrixRotationRollPitchYaw(0.0f, XM_PI / 2, 0.0f)*XMMatrixTranslation(3.0f, 19.5f, -18.0f));
 	XMStoreFloat4x4(&rightGateWedge->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	rightGateWedge->ObjCBIndex = objCBIndex++;
 	rightGateWedge->Mat = mMaterials["water"].get();
@@ -1806,7 +1833,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Diamond Pedestal
 	auto diamond1 = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&diamond1->World, XMMatrixScaling(1.0f, 3.0f, 1.0f)*XMMatrixTranslation(-5.0f, 0.0f, -8.0f));
+	XMStoreFloat4x4(&diamond1->World, XMMatrixScaling(1.0f, 3.0f, 1.0f)*XMMatrixTranslation(-5.0f, 10.0f, -8.0f));
 	XMStoreFloat4x4(&diamond1->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	diamond1->ObjCBIndex = objCBIndex++;
 	diamond1->Mat = mMaterials["water"].get();
@@ -1820,7 +1847,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Diamond Pedestal 2
 	auto diamond2 = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&diamond2->World, XMMatrixScaling(1.0f, 3.0f, 1.0f)*XMMatrixTranslation(5.0f, 0.0f, -8.0f));
+	XMStoreFloat4x4(&diamond2->World, XMMatrixScaling(1.0f, 3.0f, 1.0f)*XMMatrixTranslation(5.0f, 10.0f, -8.0f));
 	XMStoreFloat4x4(&diamond2->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	diamond2->ObjCBIndex = objCBIndex++;
 	diamond2->Mat = mMaterials["water"].get();
@@ -1834,7 +1861,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Torus
 	auto torus = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&torus->World, XMMatrixScaling(0.75f, 0.75f, 0.75f)*XMMatrixRotationRollPitchYaw(XM_PI / 2, 0.0f, 0.0f)*XMMatrixTranslation(5.0f, 4.1f, -8.0f));
+	XMStoreFloat4x4(&torus->World, XMMatrixScaling(0.75f, 0.75f, 0.75f)*XMMatrixRotationRollPitchYaw(XM_PI / 2, 0.0f, 0.0f)*XMMatrixTranslation(5.0f, 14.1f, -8.0f));
 	XMStoreFloat4x4(&torus->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	torus->ObjCBIndex = objCBIndex++;
 	torus->Mat = mMaterials["water"].get();
@@ -1848,7 +1875,7 @@ void TreeBillboardsApp::BuildRenderItems()
 
 	//Skull
 	auto skullRitem = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&skullRitem->World, XMMatrixScaling(0.2f, 0.2f, 0.2f)*XMMatrixTranslation(-5.0f, 3.0f, -8.0f));
+	XMStoreFloat4x4(&skullRitem->World, XMMatrixScaling(0.2f, 0.2f, 0.2f)*XMMatrixTranslation(-5.0f, 13.0f, -8.0f));
 	skullRitem->TexTransform = MathHelper::Identity4x4();
 	skullRitem->ObjCBIndex = objCBIndex++;
 	skullRitem->Mat = mMaterials["water"].get();
