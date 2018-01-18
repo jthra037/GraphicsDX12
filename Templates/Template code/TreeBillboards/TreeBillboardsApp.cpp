@@ -1005,9 +1005,9 @@ void TreeBillboardsApp::BuildBoxGeometry()
 	for (size_t i = 0; i < box.Vertices.size(); ++i, ++k)
 	{
 		auto& p = box.Vertices[i].Position;
-		vertices[i].Pos = p;
-		vertices[i].Normal = box.Vertices[i].Normal;
-		vertices[i].TexC = box.Vertices[i].TexC;
+		vertices[k].Pos = p;
+		vertices[k].Normal = box.Vertices[i].Normal;
+		vertices[k].TexC = box.Vertices[i].TexC;
 	}
 
 	for (size_t i = 0; i < grid.Vertices.size(); ++i, ++k)
@@ -1015,7 +1015,7 @@ void TreeBillboardsApp::BuildBoxGeometry()
 		auto& p = grid.Vertices[i].Position;
 		vertices[k].Pos = grid.Vertices[i].Position;
 		vertices[k].Normal = grid.Vertices[i].Normal;
-		vertices[i].TexC = grid.Vertices[i].TexC;
+		vertices[k].TexC = grid.Vertices[i].TexC;
 	}
 
 	for (size_t i = 0; i < sphere.Vertices.size(); ++i, ++k)
@@ -1023,7 +1023,7 @@ void TreeBillboardsApp::BuildBoxGeometry()
 		auto& p = sphere.Vertices[i].Position;
 		vertices[k].Pos = sphere.Vertices[i].Position;
 		vertices[k].Normal = sphere.Vertices[i].Normal;
-		vertices[i].TexC = sphere.Vertices[i].TexC;
+		vertices[k].TexC = sphere.Vertices[i].TexC;
 	}
 
 	for (size_t i = 0; i < cylinder.Vertices.size(); ++i, ++k)
@@ -1031,7 +1031,7 @@ void TreeBillboardsApp::BuildBoxGeometry()
 		auto& p = cylinder.Vertices[i].Position;
 		vertices[k].Pos = cylinder.Vertices[i].Position;
 		vertices[k].Normal = cylinder.Vertices[i].Normal;
-		vertices[i].TexC = cylinder.Vertices[i].TexC;
+		vertices[k].TexC = cylinder.Vertices[i].TexC;
 	}
 
 	for (size_t i = 0; i < diamond.Vertices.size(); ++i, ++k)
@@ -1039,7 +1039,7 @@ void TreeBillboardsApp::BuildBoxGeometry()
 		auto& p = diamond.Vertices[i].Position;
 		vertices[k].Pos = diamond.Vertices[i].Position;
 		vertices[k].Normal = diamond.Vertices[i].Normal;
-		vertices[i].TexC = diamond.Vertices[i].TexC;
+		vertices[k].TexC = diamond.Vertices[i].TexC;
 	}
 
 	for (size_t i = 0; i < torus.Vertices.size(); ++i, ++k)
@@ -1047,7 +1047,7 @@ void TreeBillboardsApp::BuildBoxGeometry()
 		auto& p = torus.Vertices[i].Position;
 		vertices[k].Pos = torus.Vertices[i].Position;
 		vertices[k].Normal = torus.Vertices[i].Normal;
-		vertices[i].TexC = torus.Vertices[i].TexC;
+		vertices[k].TexC = torus.Vertices[i].TexC;
 	}
 
 	for (size_t i = 0; i < pyramid.Vertices.size(); ++i, ++k)
@@ -1055,7 +1055,7 @@ void TreeBillboardsApp::BuildBoxGeometry()
 		auto& p = pyramid.Vertices[i].Position;
 		vertices[k].Pos = pyramid.Vertices[i].Position;
 		vertices[k].Normal = pyramid.Vertices[i].Normal;
-		vertices[i].TexC = pyramid.Vertices[i].TexC;
+		vertices[k].TexC = pyramid.Vertices[i].TexC;
 	}
 
 	for (size_t i = 0; i < prism.Vertices.size(); ++i, ++k)
@@ -1063,7 +1063,7 @@ void TreeBillboardsApp::BuildBoxGeometry()
 		auto& p = prism.Vertices[i].Position;
 		vertices[k].Pos = prism.Vertices[i].Position;
 		vertices[k].Normal = prism.Vertices[i].Normal;
-		vertices[i].TexC = prism.Vertices[i].TexC;
+		vertices[k].TexC = prism.Vertices[i].TexC;
 	}
 
 	for (size_t i = 0; i < wedge.Vertices.size(); ++i, ++k)
@@ -1071,7 +1071,7 @@ void TreeBillboardsApp::BuildBoxGeometry()
 		auto& p = wedge.Vertices[i].Position;
 		vertices[k].Pos = wedge.Vertices[i].Position;
 		vertices[k].Normal = wedge.Vertices[i].Normal;
-		vertices[i].TexC = wedge.Vertices[i].TexC;
+		vertices[k].TexC = wedge.Vertices[i].TexC;
 	}
 
 	std::vector<std::uint16_t> indices;

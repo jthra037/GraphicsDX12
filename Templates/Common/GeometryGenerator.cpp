@@ -97,11 +97,11 @@ GeometryGenerator::MeshData GeometryGenerator::CreateBox(float width, float heig
 
 	// Put a cap on the number of subdivisions.
 	numSubdivisions = std::min<uint32>(numSubdivisions, 6u);
-	
-	
+
+
 	for (uint32 i = 0; i < numSubdivisions; ++i)
 		Subdivide(meshData);
-		
+
 
 	return meshData;
 }
