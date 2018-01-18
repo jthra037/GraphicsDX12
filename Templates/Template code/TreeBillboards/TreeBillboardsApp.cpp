@@ -603,6 +603,13 @@ void TreeBillboardsApp::LoadTextures()
 		mCommandList.Get(), fenceTex->Filename.c_str(),
 		fenceTex->Resource, fenceTex->UploadHeap));
 
+	auto bricksTex = std::make_unique<Texture>();
+	bricksTex->Name = "bricksTex";
+	bricksTex->Filename = L"../../Textures/bricks2.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), bricksTex->Filename.c_str(),
+		bricksTex->Resource, bricksTex->UploadHeap));
+
 	auto treeArrayTex = std::make_unique<Texture>();
 	treeArrayTex->Name = "treeArrayTex";
 	treeArrayTex->Filename = L"../../Textures/treeArray2.dds";
@@ -613,6 +620,7 @@ void TreeBillboardsApp::LoadTextures()
 	mTextures[grassTex->Name] = std::move(grassTex);
 	mTextures[waterTex->Name] = std::move(waterTex);
 	mTextures[fenceTex->Name] = std::move(fenceTex);
+	mTextures[bricksTex->Name] = std::move(bricksTex);
 	mTextures[treeArrayTex->Name] = std::move(treeArrayTex);
 }
 
@@ -675,6 +683,7 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	auto grassTex = mTextures["grassTex"]->Resource;
 	auto waterTex = mTextures["waterTex"]->Resource;
 	auto fenceTex = mTextures["fenceTex"]->Resource;
+	auto bricksTex = mTextures["bricksTex"]->Resource;
 	auto treeArrayTex = mTextures["treeArrayTex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -694,6 +703,11 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 	srvDesc.Format = fenceTex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(fenceTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+	srvDesc.Format = bricksTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(bricksTex.Get(), &srvDesc, hDescriptor);
 
 	// next descriptor
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
@@ -1388,10 +1402,17 @@ void TreeBillboardsApp::BuildMaterials()
 	auto treeSprites = std::make_unique<Material>();
 	treeSprites->Name = "treeSprites";
 	treeSprites->MatCBIndex = 3;
-	treeSprites->DiffuseSrvHeapIndex = 3;
+	treeSprites->DiffuseSrvHeapIndex = 4;
 	treeSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
 
+	auto bricks = std::make_unique<Material>();
+	bricks->Name = "bricks";
+	bricks->MatCBIndex = 4;
+	bricks->DiffuseSrvHeapIndex = 3;
+	bricks->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	bricks->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	bricks->Roughness = 0.25f;
 
 /*
 	auto gold = std::make_unique<Material>();
@@ -1488,6 +1509,7 @@ void TreeBillboardsApp::BuildMaterials()
 	mMaterials["water"] = std::move(water);
 	mMaterials["wirefence"] = std::move(wirefence);
 	mMaterials["treeSprites"] = std::move(treeSprites);
+	mMaterials["bricks"] = std::move(bricks);
 }
 
 void TreeBillboardsApp::BuildRenderItems()
@@ -1552,7 +1574,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&keepBox->World, XMMatrixScaling(10.0f, 14.0f, 6.0f)*XMMatrixTranslation(0.0f, 17.0f, 0.0f));
 	XMStoreFloat4x4(&keepBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	keepBox->ObjCBIndex = objCBIndex++;
-	keepBox->Mat = mMaterials["water"].get();
+	keepBox->Mat = mMaterials["bricks"].get();
 	keepBox->Geo = mGeometries["shapeGeo"].get();
 	keepBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	keepBox->IndexCount = keepBox->Geo->DrawArgs["box"].IndexCount;
@@ -1582,7 +1604,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&keepStairsWedge->World, XMMatrixScaling(5.0f, 2.0f, 3.0f)*XMMatrixRotationRollPitchYaw(0.0f, XM_PI, 0.0f)*XMMatrixTranslation(0.0f, 11.0f, -4.5f));
 	XMStoreFloat4x4(&keepStairsWedge->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	keepStairsWedge->ObjCBIndex = objCBIndex++;
-	keepStairsWedge->Mat = mMaterials["water"].get();
+	keepStairsWedge->Mat = mMaterials["bricks"].get();
 	keepStairsWedge->Geo = mGeometries["shapeGeo"].get();
 	keepStairsWedge->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	keepStairsWedge->IndexCount = keepStairsWedge->Geo->DrawArgs["wedge"].IndexCount;
@@ -1597,7 +1619,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&backWallBox->World, XMMatrixScaling(28.0f, 6.0f, 1.0f)*XMMatrixTranslation(0.0f, 13.0f, 12.0f));
 	XMStoreFloat4x4(&backWallBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	backWallBox->ObjCBIndex = objCBIndex++;
-	backWallBox->Mat = mMaterials["water"].get();
+	backWallBox->Mat = mMaterials["bricks"].get();
 	backWallBox->Geo = mGeometries["shapeGeo"].get();
 	backWallBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	backWallBox->IndexCount = backWallBox->Geo->DrawArgs["box"].IndexCount;
@@ -1612,7 +1634,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&RfrontWallBox->World, XMMatrixScaling(9.0f, 6.0f, 1.0f)*XMMatrixTranslation(7.0f, 13.0f, -18.0f));
 	XMStoreFloat4x4(&RfrontWallBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RfrontWallBox->ObjCBIndex = objCBIndex++;
-	RfrontWallBox->Mat = mMaterials["water"].get();
+	RfrontWallBox->Mat = mMaterials["bricks"].get();
 	RfrontWallBox->Geo = mGeometries["shapeGeo"].get();
 	RfrontWallBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	RfrontWallBox->IndexCount = RfrontWallBox->Geo->DrawArgs["box"].IndexCount;
@@ -1626,7 +1648,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&LfrontWallBox->World, XMMatrixScaling(9.0f, 6.0f, 1.0f)*XMMatrixTranslation(-7.0f, 13.0f, -18.0f));
 	XMStoreFloat4x4(&LfrontWallBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	LfrontWallBox->ObjCBIndex = objCBIndex++;
-	LfrontWallBox->Mat = mMaterials["water"].get();
+	LfrontWallBox->Mat = mMaterials["bricks"].get();
 	LfrontWallBox->Geo = mGeometries["shapeGeo"].get();
 	LfrontWallBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	LfrontWallBox->IndexCount = LfrontWallBox->Geo->DrawArgs["box"].IndexCount;
@@ -1640,7 +1662,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&leftWallBox->World, XMMatrixScaling(1.0f, 6.0f, 28.0f)*XMMatrixTranslation(-14.0f, 13.0f, -3.0f));
 	XMStoreFloat4x4(&leftWallBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	leftWallBox->ObjCBIndex = objCBIndex++;
-	leftWallBox->Mat = mMaterials["water"].get();
+	leftWallBox->Mat = mMaterials["bricks"].get();
 	leftWallBox->Geo = mGeometries["shapeGeo"].get();
 	leftWallBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	leftWallBox->IndexCount = leftWallBox->Geo->DrawArgs["box"].IndexCount;
@@ -1654,7 +1676,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&rightWallBox->World, XMMatrixScaling(1.0f, 6.0f, 28.0f)*XMMatrixTranslation(14.0f, 13.0f, -3.0f));
 	XMStoreFloat4x4(&rightWallBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	rightWallBox->ObjCBIndex = objCBIndex++;
-	rightWallBox->Mat = mMaterials["water"].get();
+	rightWallBox->Mat = mMaterials["bricks"].get();
 	rightWallBox->Geo = mGeometries["shapeGeo"].get();
 	rightWallBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	rightWallBox->IndexCount = rightWallBox->Geo->DrawArgs["box"].IndexCount;
@@ -1668,7 +1690,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&RLTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(-13.0f, 14.0f, 11.0f));
 	XMStoreFloat4x4(&RLTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RLTowerBox->ObjCBIndex = objCBIndex++;
-	RLTowerBox->Mat = mMaterials["water"].get();
+	RLTowerBox->Mat = mMaterials["bricks"].get();
 	RLTowerBox->Geo = mGeometries["shapeGeo"].get();
 	RLTowerBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	RLTowerBox->IndexCount = RLTowerBox->Geo->DrawArgs["box"].IndexCount;
@@ -1682,7 +1704,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&RRTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(13.0f, 14.0f, 11.0f));
 	XMStoreFloat4x4(&RRTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RRTowerBox->ObjCBIndex = objCBIndex++;
-	RRTowerBox->Mat = mMaterials["water"].get();
+	RRTowerBox->Mat = mMaterials["bricks"].get();
 	RRTowerBox->Geo = mGeometries["shapeGeo"].get();
 	RRTowerBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	RRTowerBox->IndexCount = RRTowerBox->Geo->DrawArgs["box"].IndexCount;
@@ -1696,7 +1718,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&FLTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(-13.0f, 14.0f, -17.0f));
 	XMStoreFloat4x4(&FLTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FLTowerBox->ObjCBIndex = objCBIndex++;
-	FLTowerBox->Mat = mMaterials["water"].get();
+	FLTowerBox->Mat = mMaterials["bricks"].get();
 	FLTowerBox->Geo = mGeometries["shapeGeo"].get();
 	FLTowerBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	FLTowerBox->IndexCount = FLTowerBox->Geo->DrawArgs["box"].IndexCount;
@@ -1710,7 +1732,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&FRTowerBox->World, XMMatrixScaling(4.0f, 8.0f, 4.0f)*XMMatrixTranslation(13.0f, 14.0f, -17.0f));
 	XMStoreFloat4x4(&FRTowerBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FRTowerBox->ObjCBIndex = objCBIndex++;
-	FRTowerBox->Mat = mMaterials["water"].get();
+	FRTowerBox->Mat = mMaterials["bricks"].get();
 	FRTowerBox->Geo = mGeometries["shapeGeo"].get();
 	FRTowerBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	FRTowerBox->IndexCount = FRTowerBox->Geo->DrawArgs["box"].IndexCount;
@@ -1780,7 +1802,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&leftGateBox->World, XMMatrixScaling(4.0f, 8.0f, 3.0f)*XMMatrixTranslation(-4.0f, 14.0f, -18.0f));
 	XMStoreFloat4x4(&leftGateBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	leftGateBox->ObjCBIndex = objCBIndex++;
-	leftGateBox->Mat = mMaterials["water"].get();
+	leftGateBox->Mat = mMaterials["bricks"].get();
 	leftGateBox->Geo = mGeometries["shapeGeo"].get();
 	leftGateBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	leftGateBox->IndexCount = leftGateBox->Geo->DrawArgs["box"].IndexCount;
@@ -1794,7 +1816,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&rightGateBox->World, XMMatrixScaling(4.0f, 8.0f, 3.0f)*XMMatrixTranslation(4.0f, 14.0f, -18.0f));
 	XMStoreFloat4x4(&rightGateBox->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	rightGateBox->ObjCBIndex = objCBIndex++;
-	rightGateBox->Mat = mMaterials["water"].get();
+	rightGateBox->Mat = mMaterials["bricks"].get();
 	rightGateBox->Geo = mGeometries["shapeGeo"].get();
 	rightGateBox->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	rightGateBox->IndexCount = rightGateBox->Geo->DrawArgs["box"].IndexCount;
