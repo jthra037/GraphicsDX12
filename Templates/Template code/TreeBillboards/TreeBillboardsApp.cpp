@@ -286,8 +286,10 @@ void TreeBillboardsApp::Draw(const GameTimer& gt)
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
 		D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
+	DirectX::XMFLOAT4 clearColor = { 0.07f, 0.05f, 0.1f, 1.0f };
+
     // Clear the back buffer and depth buffer.
-    mCommandList->ClearRenderTargetView(CurrentBackBufferView(), (float*)&mMainPassCB.FogColor, 0, nullptr);
+    mCommandList->ClearRenderTargetView(CurrentBackBufferView(), (float*)&clearColor, 0, nullptr);
     mCommandList->ClearDepthStencilView(DepthStencilView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
     // Specify the buffers we are going to render to.
@@ -653,6 +655,27 @@ void TreeBillboardsApp::LoadTextures()
 		mCommandList.Get(), bricksTex->Filename.c_str(),
 		bricksTex->Resource, bricksTex->UploadHeap));
 
+	auto iceTex = std::make_unique<Texture>();
+	iceTex->Name = "iceTex";
+	iceTex->Filename = L"../../Textures/ice.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), iceTex->Filename.c_str(),
+		iceTex->Resource, iceTex->UploadHeap));
+
+	auto stoneTex = std::make_unique<Texture>();
+	stoneTex->Name = "stoneTex";
+	stoneTex->Filename = L"../../Textures/stone.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), stoneTex->Filename.c_str(),
+		stoneTex->Resource, stoneTex->UploadHeap));
+
+	auto checkerTex = std::make_unique<Texture>();
+	checkerTex->Name = "checkerTex";
+	checkerTex->Filename = L"../../Textures/checkboard.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
+		mCommandList.Get(), checkerTex->Filename.c_str(),
+		checkerTex->Resource, checkerTex->UploadHeap));
+
 	auto treeArrayTex = std::make_unique<Texture>();
 	treeArrayTex->Name = "treeArrayTex";
 	treeArrayTex->Filename = L"../../Textures/treeArray2.dds";
@@ -664,6 +687,9 @@ void TreeBillboardsApp::LoadTextures()
 	mTextures[waterTex->Name] = std::move(waterTex);
 	mTextures[fenceTex->Name] = std::move(fenceTex);
 	mTextures[bricksTex->Name] = std::move(bricksTex);
+	mTextures[iceTex->Name] = std::move(iceTex);
+	mTextures[stoneTex->Name] = std::move(stoneTex);
+	mTextures[checkerTex->Name] = std::move(checkerTex);
 	mTextures[treeArrayTex->Name] = std::move(treeArrayTex);
 }
 
@@ -713,7 +739,7 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 5;
+	srvHeapDesc.NumDescriptors = 8;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
@@ -727,8 +753,12 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	auto waterTex = mTextures["waterTex"]->Resource;
 	auto fenceTex = mTextures["fenceTex"]->Resource;
 	auto bricksTex = mTextures["bricksTex"]->Resource;
+	auto iceTex = mTextures["iceTex"]->Resource;
+	auto stoneTex = mTextures["stoneTex"]->Resource;
+	auto checkerTex = mTextures["checkerTex"]->Resource;
 	auto treeArrayTex = mTextures["treeArrayTex"]->Resource;
 
+	// srv 0
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.Format = grassTex->GetDesc().Format;
@@ -738,21 +768,43 @@ void TreeBillboardsApp::BuildDescriptorHeaps()
 	md3dDevice->CreateShaderResourceView(grassTex.Get(), &srvDesc, hDescriptor);
 
 	// next descriptor
+	// srv 1
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 	srvDesc.Format = waterTex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(waterTex.Get(), &srvDesc, hDescriptor);
 
 	// next descriptor
+	// srv 2
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 	srvDesc.Format = fenceTex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(fenceTex.Get(), &srvDesc, hDescriptor);
 
 	// next descriptor
+	// srv 3
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 	srvDesc.Format = bricksTex->GetDesc().Format;
 	md3dDevice->CreateShaderResourceView(bricksTex.Get(), &srvDesc, hDescriptor);
 
 	// next descriptor
+	// srv4
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+	srvDesc.Format = iceTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(iceTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	// srv 5
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+	srvDesc.Format = stoneTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(stoneTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	// srv 6
+	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+	srvDesc.Format = checkerTex->GetDesc().Format;
+	md3dDevice->CreateShaderResourceView(checkerTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	// srv 7
 	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 
 	auto desc = treeArrayTex->GetDesc();
@@ -1132,7 +1184,7 @@ void TreeBillboardsApp::BuildBoxGeometry()
 	wedgeSubmesh.BaseVertexLocation = wedgeVertexOffset;
 
 	geo->DrawArgs["box"] = boxSubmesh;
-	geo->DrawArgs["grid"] = gridSubmesh;
+	//geo->DrawArgs["grid"] = gridSubmesh;
 	geo->DrawArgs["sphere"] = sphereSubmesh;
 	geo->DrawArgs["cylinder"] = cylinderSubmesh;
 	geo->DrawArgs["diamond"] = diamondSubmesh;
@@ -1445,7 +1497,7 @@ void TreeBillboardsApp::BuildMaterials()
 	auto treeSprites = std::make_unique<Material>();
 	treeSprites->Name = "treeSprites";
 	treeSprites->MatCBIndex = 3;
-	treeSprites->DiffuseSrvHeapIndex = 4;
+	treeSprites->DiffuseSrvHeapIndex = 7;
 	treeSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
 
@@ -1456,6 +1508,30 @@ void TreeBillboardsApp::BuildMaterials()
 	bricks->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	bricks->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
 	bricks->Roughness = 0.25f;
+
+	auto ice = std::make_unique<Material>();
+	ice->Name = "ice";
+	ice->MatCBIndex = 5;
+	ice->DiffuseSrvHeapIndex = 4;
+	ice->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	ice->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	ice->Roughness = 0.25f;
+
+	auto stone = std::make_unique<Material>();
+	stone->Name = "stone";
+	stone->MatCBIndex = 6;
+	stone->DiffuseSrvHeapIndex = 5;
+	stone->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	stone->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	stone->Roughness = 0.25f;
+
+	auto checkboard = std::make_unique<Material>();
+	checkboard->Name = "checkboard";
+	checkboard->MatCBIndex = 7;
+	checkboard->DiffuseSrvHeapIndex = 6;
+	checkboard->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	checkboard->FresnelR0 = XMFLOAT3(0.02f, 0.02f, 0.02f);
+	checkboard->Roughness = 0.25f;
 
 /*
 	auto gold = std::make_unique<Material>();
@@ -1553,6 +1629,9 @@ void TreeBillboardsApp::BuildMaterials()
 	mMaterials["wirefence"] = std::move(wirefence);
 	mMaterials["treeSprites"] = std::move(treeSprites);
 	mMaterials["bricks"] = std::move(bricks);
+	mMaterials["ice"] = std::move(ice);
+	mMaterials["stone"] = std::move(stone);
+	mMaterials["checkboard"] = std::move(checkboard);
 }
 
 void TreeBillboardsApp::BuildRenderItems()
@@ -1632,7 +1711,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&keepRoofPyramid->World, XMMatrixScaling(12.0f, 4.0f, 8.0f)*XMMatrixTranslation(0.0f, 26.0f, 0.0f));
 	XMStoreFloat4x4(&keepRoofPyramid->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	keepRoofPyramid->ObjCBIndex = objCBIndex++;
-	keepRoofPyramid->Mat = mMaterials["water"].get();
+	keepRoofPyramid->Mat = mMaterials["checkboard"].get();
 	keepRoofPyramid->Geo = mGeometries["shapeGeo"].get();
 	keepRoofPyramid->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	keepRoofPyramid->IndexCount = keepRoofPyramid->Geo->DrawArgs["pyramid"].IndexCount;
@@ -1647,7 +1726,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&keepStairsWedge->World, XMMatrixScaling(5.0f, 2.0f, 3.0f)*XMMatrixRotationRollPitchYaw(0.0f, XM_PI, 0.0f)*XMMatrixTranslation(0.0f, 11.0f, -4.5f));
 	XMStoreFloat4x4(&keepStairsWedge->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	keepStairsWedge->ObjCBIndex = objCBIndex++;
-	keepStairsWedge->Mat = mMaterials["bricks"].get();
+	keepStairsWedge->Mat = mMaterials["stone"].get();
 	keepStairsWedge->Geo = mGeometries["shapeGeo"].get();
 	keepStairsWedge->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	keepStairsWedge->IndexCount = keepStairsWedge->Geo->DrawArgs["wedge"].IndexCount;
@@ -1789,7 +1868,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&RLTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(-13.0f, 20.0f, 11.0f));
 	XMStoreFloat4x4(&RLTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RLTowerCap->ObjCBIndex = objCBIndex++;
-	RLTowerCap->Mat = mMaterials["water"].get();
+	RLTowerCap->Mat = mMaterials["checkboard"].get();
 	RLTowerCap->Geo = mGeometries["shapeGeo"].get();
 	RLTowerCap->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	RLTowerCap->IndexCount = RLTowerCap->Geo->DrawArgs["cylinder"].IndexCount;
@@ -1803,7 +1882,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&RRTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(13.0f, 20.0f, 11.0f));
 	XMStoreFloat4x4(&RRTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	RRTowerCap->ObjCBIndex = objCBIndex++;
-	RRTowerCap->Mat = mMaterials["water"].get();
+	RRTowerCap->Mat = mMaterials["checkboard"].get();
 	RRTowerCap->Geo = mGeometries["shapeGeo"].get();
 	RRTowerCap->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	RRTowerCap->IndexCount = RRTowerCap->Geo->DrawArgs["cylinder"].IndexCount;
@@ -1817,7 +1896,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&FLTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(-13.0f, 20.0f, -17.0f));
 	XMStoreFloat4x4(&FLTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FLTowerCap->ObjCBIndex = objCBIndex++;
-	FLTowerCap->Mat = mMaterials["water"].get();
+	FLTowerCap->Mat = mMaterials["checkboard"].get();
 	FLTowerCap->Geo = mGeometries["shapeGeo"].get();
 	FLTowerCap->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	FLTowerCap->IndexCount = FLTowerCap->Geo->DrawArgs["cylinder"].IndexCount;
@@ -1831,7 +1910,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&FRTowerCap->World, XMMatrixScaling(3.0f, 4.0f, 3.0f)*XMMatrixTranslation(13.0f, 20.0f, -17.0f));
 	XMStoreFloat4x4(&FRTowerCap->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	FRTowerCap->ObjCBIndex = objCBIndex++;
-	FRTowerCap->Mat = mMaterials["water"].get();
+	FRTowerCap->Mat = mMaterials["checkboard"].get();
 	FRTowerCap->Geo = mGeometries["shapeGeo"].get();
 	FRTowerCap->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	FRTowerCap->IndexCount = FRTowerCap->Geo->DrawArgs["cylinder"].IndexCount;
@@ -1873,7 +1952,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&leftGateWedge->World, XMMatrixScaling(3.0f, 3.0f, 6.0f)*XMMatrixRotationRollPitchYaw(0.0f, -XM_PI / 2, 0.0f)*XMMatrixTranslation(-3.0f, 19.5f, -18.0f));
 	XMStoreFloat4x4(&leftGateWedge->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	leftGateWedge->ObjCBIndex = objCBIndex++;
-	leftGateWedge->Mat = mMaterials["water"].get();
+	leftGateWedge->Mat = mMaterials["checkboard"].get();
 	leftGateWedge->Geo = mGeometries["shapeGeo"].get();
 	leftGateWedge->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	leftGateWedge->IndexCount = leftGateWedge->Geo->DrawArgs["wedge"].IndexCount;
@@ -1887,7 +1966,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&rightGateWedge->World, XMMatrixScaling(3.0f, 3.0f, 6.0f)*XMMatrixRotationRollPitchYaw(0.0f, XM_PI / 2, 0.0f)*XMMatrixTranslation(3.0f, 19.5f, -18.0f));
 	XMStoreFloat4x4(&rightGateWedge->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	rightGateWedge->ObjCBIndex = objCBIndex++;
-	rightGateWedge->Mat = mMaterials["water"].get();
+	rightGateWedge->Mat = mMaterials["checkboard"].get();
 	rightGateWedge->Geo = mGeometries["shapeGeo"].get();
 	rightGateWedge->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	rightGateWedge->IndexCount = rightGateWedge->Geo->DrawArgs["wedge"].IndexCount;
@@ -1901,7 +1980,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&diamond1->World, XMMatrixScaling(1.0f, 3.0f, 1.0f)*XMMatrixTranslation(-5.0f, 10.0f, -8.0f));
 	XMStoreFloat4x4(&diamond1->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	diamond1->ObjCBIndex = objCBIndex++;
-	diamond1->Mat = mMaterials["water"].get();
+	diamond1->Mat = mMaterials["stone"].get();
 	diamond1->Geo = mGeometries["shapeGeo"].get();
 	diamond1->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	diamond1->IndexCount = diamond1->Geo->DrawArgs["diamond"].IndexCount;
@@ -1915,7 +1994,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&diamond2->World, XMMatrixScaling(1.0f, 3.0f, 1.0f)*XMMatrixTranslation(5.0f, 10.0f, -8.0f));
 	XMStoreFloat4x4(&diamond2->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	diamond2->ObjCBIndex = objCBIndex++;
-	diamond2->Mat = mMaterials["water"].get();
+	diamond2->Mat = mMaterials["stone"].get();
 	diamond2->Geo = mGeometries["shapeGeo"].get();
 	diamond2->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	diamond2->IndexCount = diamond2->Geo->DrawArgs["diamond"].IndexCount;
@@ -1929,7 +2008,7 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&torus->World, XMMatrixScaling(0.75f, 0.75f, 0.75f)*XMMatrixRotationRollPitchYaw(XM_PI / 2, 0.0f, 0.0f)*XMMatrixTranslation(5.0f, 14.1f, -8.0f));
 	XMStoreFloat4x4(&torus->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	torus->ObjCBIndex = objCBIndex++;
-	torus->Mat = mMaterials["water"].get();
+	torus->Mat = mMaterials["ice"].get();
 	torus->Geo = mGeometries["shapeGeo"].get();
 	torus->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	torus->IndexCount = torus->Geo->DrawArgs["torus"].IndexCount;
@@ -1943,12 +2022,12 @@ void TreeBillboardsApp::BuildRenderItems()
 	XMStoreFloat4x4(&skullRitem->World, XMMatrixScaling(0.2f, 0.2f, 0.2f)*XMMatrixTranslation(-5.0f, 13.0f, -8.0f));
 	skullRitem->TexTransform = MathHelper::Identity4x4();
 	skullRitem->ObjCBIndex = objCBIndex++;
-	skullRitem->Mat = mMaterials["water"].get();
+	skullRitem->Mat = mMaterials["ice"].get();
 	skullRitem->Geo = mGeometries["skullGeo"].get();
 	skullRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	skullRitem->IndexCount = skullRitem->Geo->DrawArgs["skull"].IndexCount;
-	skullRitem->StartIndexLocation = skullRitem->Geo->DrawArgs["skull"].StartIndexLocation;
-	skullRitem->BaseVertexLocation = skullRitem->Geo->DrawArgs["skull"].BaseVertexLocation;
+	skullRitem->StartIndexLocation = skullRitem->Geo->DrawArgs["box"].StartIndexLocation;
+	skullRitem->BaseVertexLocation = skullRitem->Geo->DrawArgs["box"].BaseVertexLocation;
 	mRitemLayer[(int)RenderLayer::Opaque].push_back(skullRitem.get());
 	mAllRitems.push_back(std::move(skullRitem));
 
